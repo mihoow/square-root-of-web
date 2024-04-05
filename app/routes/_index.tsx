@@ -1,6 +1,6 @@
 import type { LoaderFunctionArgs } from "@remix-run/node";
-import { useLoaderData } from "@remix-run/react";
 import { json } from "@remix-run/server-runtime";
+import { useLoaderData } from "@remix-run/react";
 
 export const loader = async ({ context: { payload } }: LoaderFunctionArgs) => {
   const users = await payload.find({

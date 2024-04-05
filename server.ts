@@ -1,12 +1,11 @@
-import express from "express";
 import compression from "compression";
-import morgan from "morgan";
-import sourceMapSupport from "source-map-support";
-import payload from "payload";
-import invariant from "tiny-invariant";
-
 import { createRequestHandler } from "@remix-run/express";
-import { installGlobals, type ServerBuild } from "@remix-run/node";
+import express from "express";
+import { installGlobals } from "@remix-run/node";
+import invariant from "tiny-invariant";
+import morgan from "morgan";
+import payload from "payload";
+import sourceMapSupport from "source-map-support";
 
 // patch in Remix runtime globals
 installGlobals();

@@ -5,6 +5,7 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "target": "es2022",
+    "module": "ES2020",
     "allowJs": true,
     "resolveJsonModule": true,
     "moduleDetection": "force",
