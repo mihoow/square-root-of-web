@@ -1,5 +1,5 @@
 {
-  "include": ["env.d.ts", "**/*.ts", "**/*.tsx", "jest.setup.js"],
+  "include": ["env.d.ts", "**/*.ts", "**/*.tsx", "jest.setup.js", "templates/run.js"],
   "compilerOptions": {
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,

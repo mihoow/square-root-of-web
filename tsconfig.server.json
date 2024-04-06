@@ -1,6 +1,6 @@
 {
   "extends": "./tsconfig.json",
-  "files": ["env.d.ts", "server.ts", "payload.config.ts"],
+  "files": ["env.d.ts", "server.ts", "payload.config.ts", "templates/run.ts"],
   "include": [],
   "compilerOptions": {
     "lib": ["ES2022"],
