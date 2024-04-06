@@ -1,0 +1,25 @@
+.contain {
+    width: 100%;
+    margin-inline: 16px;
+
+    @media screen(sm) {
+        margin-inline: 24px;
+    }
+
+    @media screen(md) {
+        margin-inline: auto;
+        width: 720px;
+    }
+
+    @media screen(lg) {
+        width: 900px;
+    }
+
+    @media screen(xl) {
+        width: 1200px;
+    }
+
+    @media screen(2xl) {
+        width: 1440px;
+    }
+}

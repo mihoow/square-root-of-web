@@ -1,4 +1,6 @@
-import type { MetaFunction } from "@remix-run/node";
+//css should be imported as an side effect for Vite
+import "./styles/index.css";
+
 import {
   Links,
   LiveReload,
@@ -8,8 +10,7 @@ import {
   ScrollRestoration,
 } from "@remix-run/react";
 
-//css should be imported as an side effect for Vite
-import "./tailwind.css";
+import type { MetaFunction } from "@remix-run/node";
 
 export const meta: MetaFunction = () => [
   { title: "Welcome to RePay!" },
@@ -19,12 +20,12 @@ export const meta: MetaFunction = () => [
 
 export default function App() {
   return (
-    <html lang="en">
+    <html lang="en" className="">
       <head>
         <Meta />
         <Links />
       </head>
-      <body>
+      <body className="dark:bg-[rgb(2,4,32)]">
         <Outlet />
         <ScrollRestoration />
         <Scripts />

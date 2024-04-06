@@ -1,0 +1,7 @@
+@import "tailwind.css";
+@import "fonts.css";
+@import "contain.css";
+
+body {
+    font-family: 'Josefin Sans', system-ui, sans-serif;
+}
