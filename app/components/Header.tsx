@@ -1,4 +1,5 @@
 import { Link } from '@remix-run/react';
+import { ThemeToggler } from '~/features/theme/components/ThemeToggler';
 import { component } from '~/utils/component';
 
 const Logo = component('Logo', function ({ className }) {
@@ -28,9 +29,10 @@ const Logo = component('Logo', function ({ className }) {
 
 export const Header = component('Header', function ({ className }) {
     return (
-        <div className={this.mcn(className, 'h-20 py-4 border-b-2')}>
-            <div className={this.cn('contain h-full flex items-center')}>
+        <div className={this.mcn(className, 'h-20 py-4 border-b-2 bg-white dark:bg-darkBackground')}>
+            <div className={this.cn('contain h-full flex items-center justify-between')}>
                 <Logo />
+                <ThemeToggler />
             </div>
         </div>
     );
