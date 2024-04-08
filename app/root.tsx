@@ -5,7 +5,6 @@ import { Links, Meta, Outlet, Scripts, ScrollRestoration, json, useLoaderData } 
 import type { LinksFunction, LoaderFunctionArgs, MetaFunction } from '@remix-run/node';
 
 import { Header } from './components/Header';
-import { Theme } from './features/theme/config';
 import { ThemeProvider } from './features/theme/contexts/Theme.provider';
 import { getThemeSession } from './features/theme/service.server';
 import { useTheme } from './features/theme/contexts/Theme.context';
@@ -20,7 +19,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
     const defaultMeta = [
-        { title: 'Welcome to RePay!' },
+        { title: 'Square Root Of Web' },
+        { name: 'description', content: 'The learning platform about the web development and more' },
+        { name: 'keywords', content: ['web', 'web development', 'JavaScript', 'JS', 'react', 'course'].join(', ') },
         { charSet: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
     ]
@@ -52,7 +53,7 @@ function App() {
     return (
         <html
             lang='en'
-            className={ theme === Theme.DARK ? 'dark' : '' }
+            className={ theme || '' }
         >
             <head>
                 <Meta />
