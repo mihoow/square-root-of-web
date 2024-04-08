@@ -11,7 +11,6 @@ export const ThemeToggler = component('ThemeToggler', function ({ className }) {
             className={this.mcn(className)}
             checked={theme === Theme.DARK}
             onChange={toggleTheme}
-            size={32}
         />
     );
 });
