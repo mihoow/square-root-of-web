@@ -1,25 +1,30 @@
 .contain {
+    max-width: calc(100vw - 32px);
     width: 100%;
     margin-inline: 16px;
 
-    @media screen(sm) {
+    @media (min-width: 640px) {
+        max-width: calc(100vw - 48px);
         margin-inline: 24px;
     }
 
-    @media screen(md) {
+    @media (min-width: 768px) {
+        max-width: calc(100vw - 64px);
+        margin-inline: 32px;
+    }
+
+    @media (min-width: 1024px) {
+        max-width: calc(100vw - 104px);
+        margin-inline: 52px;
+    }
+
+    @media (min-width: 1280px) {
+        max-width: calc(100vw - 172px);
+        margin-inline: 86px;
+    }
+
+    @media (min-width: 1452px) {
+        max-width: 1280px;
         margin-inline: auto;
-        width: 720px;
-    }
-
-    @media screen(lg) {
-        width: 900px;
-    }
-
-    @media screen(xl) {
-        width: 1200px;
-    }
-
-    @media screen(2xl) {
-        width: 1440px;
     }
 }
