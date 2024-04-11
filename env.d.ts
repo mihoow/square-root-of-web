@@ -1,4 +1,4 @@
-/// <reference types="@remix-run/node" />
+/// <reference types="@vercel/remix/server" />
 /// <reference types="vite/client" />
 
 import type { User } from "payload/generated-types";
@@ -14,7 +14,7 @@ export interface RemixRequestContext {
   res: Response;
 }
 
-declare module "@remix-run/node" {
+declare module "@vercel/remix/server" {
   interface AppLoadContext extends RemixRequestContext {}
 }
 
@@ -24,24 +24,25 @@ interface PayloadRequest extends Express.Request {
   user?: User;
 }
 
-type GetLoadContextFunction = (
+type IGetLoadContextFunction = (
   req: PayloadRequest,
   res: Response
 ) => Promise<AppLoadContext> | AppLoadContext;
-type RequestHandler = (
+
+type IRequestHandler = (
   req: Request,
   res: Response,
   next: NextFunction
 ) => Promise<void>;
 
-declare module "@remix-run/express" {
+declare module "@vercel/remix/server" {
   export function createRequestHandler({
     build,
     getLoadContext,
     mode,
   }: {
     build: ServerBuild | (() => Promise<ServerBuild>);
-    getLoadContext?: GetLoadContextFunction;
+    getLoadContext?: IGetLoadContextFunction;
     mode?: string;
-  }): RequestHandler;
+  }): IRequestHandler;
 }

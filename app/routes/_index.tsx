@@ -1,5 +1,5 @@
 import { component } from '~/utils/component';
-import { json } from '@remix-run/server-runtime';
+import { json } from '@vercel/remix';
 
 export const loader = async () => {
     return json({}, { status: 200 });

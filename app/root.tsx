@@ -1,13 +1,14 @@
 //css should be imported as an side effect for Vite
 import './styles/index.css';
 
-import { Links, Meta, Outlet, Scripts, ScrollRestoration, json, useLoaderData } from '@remix-run/react';
-import type { LinksFunction, LoaderFunctionArgs, MetaFunction } from '@remix-run/node';
+import { Links, Meta, Outlet, Scripts, ScrollRestoration, useLoaderData } from '@remix-run/react';
+import type { LinksFunction, LoaderFunctionArgs, MetaFunction } from '@vercel/remix';
 
 import { Header } from './components/Header';
 import { MediaProvider } from './features/media/contexts/Media.provider';
 import { ThemeProvider } from './features/theme/contexts/Theme.provider';
 import { getThemeSession } from './features/theme/service.server';
+import { json } from '@vercel/remix'
 import { useTheme } from './features/theme/contexts/Theme.context';
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {

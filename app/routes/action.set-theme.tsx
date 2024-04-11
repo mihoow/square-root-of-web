@@ -1,5 +1,5 @@
 import { handleAction } from "~/features/theme/service.server";
-import { redirect } from "@remix-run/node";
+import { redirect } from "@vercel/remix";
 
 export const action = handleAction;
 
