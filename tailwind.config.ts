@@ -1,3 +1,5 @@
+import { Breakpoint, BreakpointValue } from "./app/features/media/config";
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: ["./app/**/*.{js,jsx,ts,tsx}"],
@@ -9,12 +11,12 @@ module.exports = {
       }
     },
     screens: {
-      'xs': '375px',
-      'sm': '640px',
-      'md': '768px',
-      'lg': '1024px',
-      'xl': '1280px',
-      '2xl': '1536px',
+      [Breakpoint.XS]: `${BreakpointValue.XS}px`,
+      [Breakpoint.SM]: `${BreakpointValue.SM}px`,
+      [Breakpoint.MD]: `${BreakpointValue.MD}px`,
+      [Breakpoint.LG]: `${BreakpointValue.LG}px`,
+      [Breakpoint.XL]: `${BreakpointValue.XL}px`,
+      [Breakpoint["2XL"]]: `${BreakpointValue["2XL"]}px`,
     },
     fontFamily: {
       sans: ['Josefin Sans', 'system-ui', 'sans-serif']

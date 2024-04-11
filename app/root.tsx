@@ -5,6 +5,7 @@ import { Links, Meta, Outlet, Scripts, ScrollRestoration, json, useLoaderData } 
 import type { LinksFunction, LoaderFunctionArgs, MetaFunction } from '@remix-run/node';
 
 import { Header } from './components/Header';
+import { MediaProvider } from './features/media/contexts/Media.provider';
 import { ThemeProvider } from './features/theme/contexts/Theme.provider';
 import { getThemeSession } from './features/theme/service.server';
 import { useTheme } from './features/theme/contexts/Theme.context';
@@ -24,16 +25,13 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
         { name: 'keywords', content: ['web', 'web development', 'JavaScript', 'JS', 'react', 'course'].join(', ') },
         { charSet: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-    ]
+    ];
 
     if (!data?.theme) {
-        return defaultMeta
+        return defaultMeta;
     }
 
-    return [
-        ...defaultMeta,
-        { name: 'color-scheme', content: data.theme === 'light' ? 'light dark' : 'dark light' }
-    ]
+    return [...defaultMeta, { name: 'color-scheme', content: data.theme === 'light' ? 'light dark' : 'dark light' }];
 };
 
 export const links: LinksFunction = () => {
@@ -48,12 +46,12 @@ export const links: LinksFunction = () => {
 };
 
 function App() {
-    const [theme] = useTheme()
+    const [theme] = useTheme();
 
     return (
         <html
             lang='en'
-            className={ theme || '' }
+            className={theme || ''}
         >
             <head>
                 <Meta />
@@ -75,8 +73,10 @@ export default function Root() {
     const { theme } = useLoaderData<typeof loader>();
 
     return (
-        <ThemeProvider themeFromCookie={theme}>
-            <App />
-        </ThemeProvider>
+        <MediaProvider>
+            <ThemeProvider themeFromCookie={theme}>
+                <App />
+            </ThemeProvider>
+        </MediaProvider>
     );
 }
