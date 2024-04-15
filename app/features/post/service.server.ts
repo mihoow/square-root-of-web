@@ -2,6 +2,7 @@ import type { Payload } from 'payload';
 import type { Post as RawPost } from 'payload/generated-types';
 import type { CodePenData, PageLayoutItem, Post, QAItem, QuestionsAndAnswersData, SectionItem, TextBlockData, YoutubeVideoData } from './type';
 import type { AppLoadContext } from '@remix-run/node';
+import { getClientIPAddress } from 'remix-utils/get-client-ip-address'
 
 function normalizeSections(sections: RawPost['sections']): SectionItem[] {
     return sections.reduce<SectionItem[]>((acc, section) => {
@@ -140,4 +141,8 @@ export async function updateViewsCount({ payload, user }: AppLoadContext, postId
     }
 
     await postsCollection.updateOne({ _id: postId }, { $inc: { 'stats.totalViews': 1 } })
+}
+
+export function getIP(request: Request) {
+    return getClientIPAddress(request)
 }
