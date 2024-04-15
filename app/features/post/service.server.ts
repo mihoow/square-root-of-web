@@ -125,12 +125,18 @@ export async function getPostBySlug(payload: Payload, slug: string) {
 }
 
 
-export async function updateViewsCount({ payload, user }: AppLoadContext, postId: string) {
+export async function updateViewsCount(request: Request, { payload, user }: AppLoadContext, postId: string) {
     if (process.env.NODE_ENV !== 'production') {
         return
     }
 
     if (user?.email === 'm98.wieczorek@gmail.com') {
+        return
+    }
+
+    const clientIp = getClientIPAddress(request)
+
+    if (!clientIp) {
         return
     }
 
@@ -141,8 +147,4 @@ export async function updateViewsCount({ payload, user }: AppLoadContext, postId
     }
 
     await postsCollection.updateOne({ _id: postId }, { $inc: { 'stats.totalViews': 1 } })
-}
-
-export function getIP(request: Request) {
-    return getClientIPAddress(request)
 }
