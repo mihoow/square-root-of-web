@@ -1,6 +1,7 @@
 import type { Payload } from 'payload';
 import type { Post as RawPost } from 'payload/generated-types';
 import type { CodePenData, PageLayoutItem, Post, QAItem, QuestionsAndAnswersData, SectionItem, TextBlockData, YoutubeVideoData } from './type';
+import type { AppLoadContext } from '@remix-run/node';
 
 function normalizeSections(sections: RawPost['sections']): SectionItem[] {
     return sections.reduce<SectionItem[]>((acc, section) => {
@@ -120,4 +121,23 @@ export async function getPostBySlug(payload: Payload, slug: string) {
     }
 
     return normalizePost(post);
+}
+
+
+export async function updateViewsCount({ payload, user }: AppLoadContext, postId: string) {
+    if (process.env.NODE_ENV !== 'production') {
+        return
+    }
+
+    if (user?.email === 'm98.wieczorek@gmail.com') {
+        return
+    }
+
+    const postsCollection = payload.db.collections['posts']
+
+    if (!postsCollection) {
+        return
+    }
+
+    await postsCollection.updateOne({ _id: postId }, { $inc: { 'stats.totalViews': 1 } })
 }

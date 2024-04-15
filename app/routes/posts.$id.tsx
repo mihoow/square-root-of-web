@@ -9,11 +9,13 @@ import { PostSection } from '~/features/post/components/PostSection';
 import { SectionRenderer } from '~/features/post/components/SectionRenderer';
 import type { ShouldRevalidateFunction } from '@remix-run/react';
 import { component } from '~/utils/component';
+import { getClientIPAddress } from 'remix-utils/get-client-ip-address'
 import { getPostBySlug } from '~/features/post/service.server';
+import { useEffect } from 'react';
 import { useLoaderData } from '@remix-run/react';
 import { useSectionsObserver } from '~/features/post/hooks/useSectionsObserver';
 
-export const loader = async ({ context: { payload }, params }: LoaderFunctionArgs) => {
+export const loader = async ({ request, context: { payload }, params }: LoaderFunctionArgs) => {
     if (!('id' in params) || !params.id) {
         throw redirect('/404', { status: 404 });
     }
@@ -24,7 +26,7 @@ export const loader = async ({ context: { payload }, params }: LoaderFunctionArg
         throw redirect('/404', { status: 404 });
     }
 
-    return json({ post });
+    return json({ post, ip: getClientIPAddress(request) });
 };
 
 export const shouldRevalidate: ShouldRevalidateFunction = () => {
@@ -81,9 +83,22 @@ export default component('PostPage', function () {
             sections,
             layout,
         },
+        ip
     } = useLoaderData<typeof loader>();
 
     const connectToSection = useSectionsObserver(layout);
+
+    useEffect(() => {
+        (async () => {
+          try {
+            const res = await fetch('https://jsonip.com/')
+
+            console.log('<<', await res.json())
+          } catch (error) {
+            console.log('<<', 'error')
+          }
+        })()
+    }, [])
 
     return (
         <main className={this.mcn('my-10 contain prose dark:prose-invert')}>
@@ -94,6 +109,7 @@ export default component('PostPage', function () {
                     title={tabTitle}
                     mainTag={tags[0]}
                 />
+                <div>Client IP: {ip || 'not found'}</div>
                 <PostHeader
                     title={title}
                     tags={tags}
