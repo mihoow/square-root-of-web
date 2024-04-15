@@ -9,7 +9,6 @@ import { PostSection } from '~/features/post/components/PostSection';
 import { SectionRenderer } from '~/features/post/components/SectionRenderer';
 import type { ShouldRevalidateFunction } from '@remix-run/react';
 import { component } from '~/utils/component';
-import { getClientIPAddress } from 'remix-utils/get-client-ip-address'
 import { getPostBySlug } from '~/features/post/service.server';
 import { useEffect } from 'react';
 import { useLoaderData } from '@remix-run/react';
@@ -26,6 +25,7 @@ export const loader = async ({ request, context: { payload }, params }: LoaderFu
         throw redirect('/404', { status: 404 });
     }
 
+    const { getClientIPAddress } = await import('remix-utils/get-client-ip-address')
 
     return json({ post, ip: getClientIPAddress(request) });
 };
