@@ -1,7 +1,6 @@
-import type { Field, TextField } from 'payload/types';
+import type { Field, RichTextField } from 'payload/types';
 import { HTMLConverterFeature, lexicalEditor, lexicalHTML } from '@payloadcms/richtext-lexical';
 
-import type { LexicalRichTextAdapter } from '@payloadcms/richtext-lexical';
 import { text as textValidator } from 'payload/dist/fields/validations';
 
 export function validateUrlFriendlyText(value: any, args: any): ReturnType<typeof textValidator> {
@@ -20,7 +19,7 @@ export function validateUrlFriendlyText(value: any, args: any): ReturnType<typeo
 
 export function addRichTextFields(
     fieldName: string,
-    options: Omit<TextField, 'name' | 'type' | 'editor'> = {}
+    options: Omit<RichTextField, 'name' | 'type' | 'editor'> = {}
 ): [Field, Field] {
     return [
         {
