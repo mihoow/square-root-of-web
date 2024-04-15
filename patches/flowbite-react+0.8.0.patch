@@ -1,0 +1,108 @@
+diff --git a/node_modules/flowbite-react/dist/cjs/components/Accordion/Accordion.cjs b/node_modules/flowbite-react/dist/cjs/components/Accordion/Accordion.cjs
+index 4aaefab..4f79922 100644
+--- a/node_modules/flowbite-react/dist/cjs/components/Accordion/Accordion.cjs
++++ b/node_modules/flowbite-react/dist/cjs/components/Accordion/Accordion.cjs
+@@ -19,9 +19,11 @@ const AccordionComponent = ({
+   collapseAll = false,
+   className,
+   theme: customTheme = {},
++  openPanelIndex = (collapseAll ? -1 : 0),
++  onChange,
+   ...props
+ }) => {
+-  const [isOpen, setOpen] = React.useState(collapseAll ? -1 : 0);
++  const [isOpen, setOpen] = React.useState(openPanelIndex);
+   const panels = React.useMemo(
+     () => React.Children.map(
+       children,
+@@ -30,12 +32,17 @@ const AccordionComponent = ({
+         arrowIcon,
+         flush,
+         isOpen: isOpen === i,
+-        setOpen: () => setOpen(isOpen === i ? -1 : i)
++        setOpen: () => {
++          const nextIndex = isOpen === i ? -1 : i
++          setOpen(nextIndex)
++          onChange?.(nextIndex)
++        }
+       })
+     ),
+     [alwaysOpen, arrowIcon, children, flush, isOpen]
+   );
+   const theme = mergeDeep.mergeDeep(index.getTheme().accordion.root, customTheme);
++  React.useEffect(() => {setOpen(openPanelIndex)}, [openPanelIndex])
+   return /* @__PURE__ */ jsxRuntime.jsx(
+     "div",
+     {
+diff --git a/node_modules/flowbite-react/dist/esm/components/Accordion/Accordion.mjs b/node_modules/flowbite-react/dist/esm/components/Accordion/Accordion.mjs
+index 2e2bc7f..73e7d83 100644
+--- a/node_modules/flowbite-react/dist/esm/components/Accordion/Accordion.mjs
++++ b/node_modules/flowbite-react/dist/esm/components/Accordion/Accordion.mjs
+@@ -1,13 +1,15 @@
+ 'use client';
+-import { jsx } from 'react/jsx-runtime';
+-import { useState, useMemo, Children, cloneElement } from 'react';
+-import { HiChevronDown } from 'react-icons/hi';
+-import { twMerge } from 'tailwind-merge';
+-import { mergeDeep } from '../../helpers/merge-deep.mjs';
+-import { getTheme } from '../../theme-store/index.mjs';
++
++import { Children, cloneElement, useEffect, useMemo, useState } from 'react';
++
+ import { AccordionContent } from './AccordionContent.mjs';
+ import { AccordionPanel } from './AccordionPanel.mjs';
+ import { AccordionTitle } from './AccordionTitle.mjs';
++import { HiChevronDown } from 'react-icons/hi';
++import { getTheme } from '../../theme-store/index.mjs';
++import { jsx } from 'react/jsx-runtime';
++import { mergeDeep } from '../../helpers/merge-deep.mjs';
++import { twMerge } from 'tailwind-merge';
+ 
+ const AccordionComponent = ({
+   alwaysOpen = false,
+@@ -17,9 +19,11 @@ const AccordionComponent = ({
+   collapseAll = false,
+   className,
+   theme: customTheme = {},
++  openPanelIndex = (collapseAll ? -1 : 0),
++  onChange,
+   ...props
+ }) => {
+-  const [isOpen, setOpen] = useState(collapseAll ? -1 : 0);
++  const [isOpen, setOpen] = useState(openPanelIndex);
+   const panels = useMemo(
+     () => Children.map(
+       children,
+@@ -28,12 +32,17 @@ const AccordionComponent = ({
+         arrowIcon,
+         flush,
+         isOpen: isOpen === i,
+-        setOpen: () => setOpen(isOpen === i ? -1 : i)
++        setOpen: () => {
++          const nextIndex = isOpen === i ? -1 : i
++          setOpen(nextIndex)
++          onChange?.(nextIndex)
++        }
+       })
+     ),
+-    [alwaysOpen, arrowIcon, children, flush, isOpen]
++    [alwaysOpen, arrowIcon, children, flush, isOpen, onChange]
+   );
+   const theme = mergeDeep(getTheme().accordion.root, customTheme);
++  useEffect(() => {setOpen(openPanelIndex)}, [openPanelIndex])
+   return /* @__PURE__ */ jsx(
+     "div",
+     {
+diff --git a/node_modules/flowbite-react/dist/types/components/Accordion/Accordion.d.ts b/node_modules/flowbite-react/dist/types/components/Accordion/Accordion.d.ts
+index b12fd08..f670847 100644
+--- a/node_modules/flowbite-react/dist/types/components/Accordion/Accordion.d.ts
++++ b/node_modules/flowbite-react/dist/types/components/Accordion/Accordion.d.ts
+@@ -20,6 +20,8 @@ export interface AccordionProps extends ComponentProps<"div"> {
+     flush?: boolean;
+     collapseAll?: boolean;
+     theme?: DeepPartial<FlowbiteAccordionTheme>;
++    openPanelIndex?: number;
++    onChange?: (panelIndex: number) => void;
+ }
+ export declare const Accordion: FC<AccordionProps> & {
+     Panel: FC<AccordionPanelProps>;
