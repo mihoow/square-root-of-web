@@ -59,15 +59,20 @@ export const PostActions = component<PostStats & { userRating: UserRating }>(
                             hiddenInputs={{
                                 intent: 'updateUserRating',
                                 postId,
-                                rating: userRating === 'likes' ? '' : 'likes'
+                                rating: userRating === 'likes' ? '' : 'likes',
                             }}
                             className={this.cn('flex items-center')}
                         >
-                            <button type='submit'>
-                                {userRating === 'likes'
-                                    ? renderIcon(HeartFilledIcon, 'text-red-400 hover:text-current transition-colors')
-                                    : renderIcon(HeartIcon, 'hover:text-red-400 transition-colors')}
-                            </button>
+                            <fieldset disabled={!postId}>
+                                <button type='submit'>
+                                    {userRating === 'likes'
+                                        ? renderIcon(
+                                              HeartFilledIcon,
+                                              'text-red-400 hover:text-current transition-colors'
+                                          )
+                                        : renderIcon(HeartIcon, 'hover:text-red-400 transition-colors')}
+                                </button>
+                            </fieldset>
                         </Form>
                     </CounterItem>
                 </div>
@@ -80,6 +85,7 @@ export const PostActionsFallback = component('PostActionsFallback', function ({ 
     return (
         <PostActions
             className={this.mcn(className)}
+            postId=''
             totalViews={0}
             likes={0}
             dislikes={0}
