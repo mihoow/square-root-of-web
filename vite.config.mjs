@@ -10,7 +10,7 @@ export default defineConfig({
       postcss: true,
       ssr: {
         noExternal: ['remix-utils']
-      }
+      },
       // appDirectory: "app",
       // assetsBuildDirectory: "public/build",
       // publicPath: "/build/",

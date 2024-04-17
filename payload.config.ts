@@ -1,4 +1,5 @@
 import Posts from './cms/collections/Posts';
+import PostsStatistics from './cms/collections/PostsStatistics';
 import Users from './cms/collections/Users';
 import { buildConfig } from 'payload/config';
 import { lexicalEditor } from '@payloadcms/richtext-lexical';
@@ -22,7 +23,7 @@ export default buildConfig({
     db: mongooseAdapter({
         url: process.env.MONGODB_URI ?? false,
     }),
-    collections: [Users, Posts],
+    collections: [Users, Posts, PostsStatistics],
     typescript: {
         outputFile: path.resolve(__dirname, 'cms/payload-types.ts'),
     },

@@ -51,47 +51,19 @@ const AdvancedTitling: Field = {
     ],
 };
 
-const Stats: Field = {
-    label: 'Post Stats',
-    type: 'collapsible',
-    required: true,
+const Tags: Field = {
+    name: 'tags',
+    type: 'select',
+    hasMany: true,
     admin: {
-        initCollapsed: true,
-        position: 'sidebar',
+        isClearable: true,
+        position: 'sidebar'
     },
-    fields: [
-        {
-            name: 'stats',
-            type: 'group',
-            interfaceName: 'PostStats',
-            fields: [
-                {
-                    name: 'totalViews',
-                    type: 'number',
-                    min: 0,
-                    defaultValue: 0,
-                    required: true
-                },
-                {
-                    name: 'created',
-                    type: 'date',
-                },
-                {
-                    name: 'tags',
-                    type: 'select',
-                    hasMany: true,
-                    admin: {
-                        isClearable: true,
-                    },
-                    options: [
-                        { value: 'java-script', label: 'JavaScript' },
-                        { value: 'web-development', label: 'Web development' },
-                    ],
-                },
-            ],
-        },
+    options: [
+        { value: 'java-script', label: 'JavaScript' },
+        { value: 'web-development', label: 'Web development' },
     ],
-};
+}
 
 const MetaFields: Field = {
     type: 'collapsible',
@@ -131,4 +103,4 @@ const MetaFields: Field = {
     ],
 };
 
-export default [PageSlug, Title, AdvancedTitling, Stats, MetaFields] satisfies Field[];
+export default [PageSlug, Title, MetaFields, AdvancedTitling, Tags] satisfies Field[];

@@ -1,8 +1,15 @@
 import type { Payload } from 'payload';
 import type { Post as RawPost } from 'payload/generated-types';
-import type { CodePenData, PageLayoutItem, Post, QAItem, QuestionsAndAnswersData, SectionItem, TextBlockData, YoutubeVideoData } from './type';
-import type { AppLoadContext } from '@remix-run/node';
-import { getClientIPAddress } from 'remix-utils/get-client-ip-address'
+import type {
+    CodePenData,
+    PageLayoutItem,
+    Post,
+    QAItem,
+    QuestionsAndAnswersData,
+    SectionItem,
+    TextBlockData,
+    YoutubeVideoData,
+} from '../type';
 
 function normalizeSections(sections: RawPost['sections']): SectionItem[] {
     return sections.reduce<SectionItem[]>((acc, section) => {
@@ -31,18 +38,20 @@ function normalizeSections(sections: RawPost['sections']): SectionItem[] {
         }
 
         if (section.blockType === 'QuestionsAndAnswers') {
-            const { items: rawItems } = section
+            const { items: rawItems } = section;
 
-            const items: QAItem[] = rawItems.map(({ questionHTML, shortQuestion, textAnswer, richTextAnswerHTML, codeAnswer }) => ({
-                id: shortQuestion.toLowerCase().replaceAll(/\s+/g, '-'),
-                question: questionHTML || shortQuestion,
-                shortQuestion,
-                textAnswer,
-                richTextAnswer: richTextAnswerHTML,
-                codeAnswer,
-            }))
+            const items: QAItem[] = rawItems.map(
+                ({ questionHTML, shortQuestion, textAnswer, richTextAnswerHTML, codeAnswer }) => ({
+                    id: shortQuestion.toLowerCase().replaceAll(/\s+/g, '-'),
+                    question: questionHTML || shortQuestion,
+                    shortQuestion,
+                    textAnswer,
+                    richTextAnswer: richTextAnswerHTML,
+                    codeAnswer,
+                })
+            );
 
-            return [...acc, {  ...section, items } satisfies QuestionsAndAnswersData];
+            return [...acc, { ...section, items } satisfies QuestionsAndAnswersData];
         }
 
         if (section.blockType === 'CodePen') {
@@ -55,53 +64,48 @@ function normalizeSections(sections: RawPost['sections']): SectionItem[] {
 
 function extractPageLayout(sections: SectionItem[]): PageLayoutItem[] {
     return sections.map((section) => {
-        const { sectionId, title, blockType } = section
+        const { sectionId, title, blockType } = section;
 
         const item: PageLayoutItem = {
             id: sectionId,
-            title
-        }
+            title,
+        };
 
         if (blockType === 'QuestionsAndAnswers') {
-            const { items } = section
+            const { items } = section;
 
             item.subsections = items.map(({ id, shortQuestion }) => {
                 return {
                     id,
-                    title: shortQuestion
-                }
-            })
+                    title: shortQuestion,
+                };
+            });
         }
 
-        return item
-    })
+        return item;
+    });
 }
 
 function normalizePost(rawData: RawPost): Post {
     const {
         title,
-        createdAt,
+        tags,
         advancedTitling: { metaTitle, navTitle = title, tabTitle = navTitle } = {},
-        stats: { totalViews, created, tags },
         sections: rawSections,
     } = rawData;
 
-    const sections = normalizeSections(rawSections)
+    const sections = normalizeSections(rawSections);
 
     return {
         ...rawData,
+        tags: tags || [],
         advancedTitling: {
             metaTitle: metaTitle || title,
             navTitle: navTitle || title,
             tabTitle: tabTitle || navTitle || title,
         },
-        stats: {
-            totalViews,
-            created: created || createdAt,
-            tags: tags || [],
-        },
         sections,
-        layout: extractPageLayout(sections)
+        layout: extractPageLayout(sections),
     };
 }
 
@@ -115,36 +119,11 @@ export async function getPostBySlug(payload: Payload, slug: string) {
         },
     });
 
-    const post = data.docs[0]
+    const post = data.docs[0];
 
     if (!post) {
-        return null
+        return null;
     }
 
     return normalizePost(post);
-}
-
-
-export async function updateViewsCount(request: Request, { payload, user }: AppLoadContext, postId: string) {
-    if (process.env.NODE_ENV !== 'production') {
-        return
-    }
-
-    if (user?.email === 'm98.wieczorek@gmail.com') {
-        return
-    }
-
-    const clientIp = getClientIPAddress(request)
-
-    if (!clientIp) {
-        return
-    }
-
-    const postsCollection = payload.db.collections['posts']
-
-    if (!postsCollection) {
-        return
-    }
-
-    await postsCollection.updateOne({ _id: postId }, { $inc: { 'stats.totalViews': 1 } })
 }

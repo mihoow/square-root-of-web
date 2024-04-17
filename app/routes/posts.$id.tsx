@@ -1,5 +1,14 @@
-import type { LoaderFunctionArgs, MetaDescriptor, MetaFunction } from '@remix-run/node';
-import { json, redirect } from '@remix-run/node';
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaDescriptor, MetaFunction } from '@remix-run/node';
+import { Await, useFetcher, useLoaderData } from '@remix-run/react';
+import { PostActions, PostActionsFallback } from '~/features/post/components/PostActions';
+import { Suspense, useEffect } from 'react';
+import { defer, json, redirect } from '@remix-run/node';
+import {
+    getPostStats,
+    getUserActions,
+    incrementViewsCount,
+    updateUserRating,
+} from '~/features/post/services/postStats.server';
 
 import { Breadcrumbs } from '~/features/post/components/Breadcrumbs';
 import { Media } from '~/features/media/components/Media';
@@ -8,10 +17,14 @@ import { PostHeader } from '~/features/post/components/PostHeader';
 import { PostSection } from '~/features/post/components/PostSection';
 import { SectionRenderer } from '~/features/post/components/SectionRenderer';
 import type { ShouldRevalidateFunction } from '@remix-run/react';
+import { TimeInMs } from '~/config/util';
+import type { UpdateFunctionArgs } from '~/features/post/services/postStats.server';
+import type { UserRating } from '~/features/post/type';
 import { component } from '~/utils/component';
-import { getPostBySlug } from '~/features/post/service.server';
-import { useEffect } from 'react';
-import { useLoaderData } from '@remix-run/react';
+import { getPostBySlug } from '~/features/post/services/fetchPost.server';
+import { isUserRating } from '~/features/post/utils';
+import { namedAction } from 'remix-utils/named-action';
+import { useMirrorRef } from '~/hooks/useMirrorRef';
 import { useSectionsObserver } from '~/features/post/hooks/useSectionsObserver';
 
 export const loader = async ({ request, context: { payload }, params }: LoaderFunctionArgs) => {
@@ -25,15 +38,17 @@ export const loader = async ({ request, context: { payload }, params }: LoaderFu
         throw redirect('/404', { status: 404 });
     }
 
-    const { getClientIPAddress } = await import('remix-utils/get-client-ip-address')
-
-    return json({ post, ip: getClientIPAddress(request) });
+    return defer({
+        post,
+        postStats: getPostStats(payload, post.id),
+        userActions: getUserActions(request, post.id),
+    });
 };
 
 export const shouldRevalidate: ShouldRevalidateFunction = () => {
     // for now ensure the post is fetched only once (re-fetched only on refresh)
-    return false
-}
+    return false;
+};
 
 export const meta: MetaFunction<typeof loader> = ({ data, matches }) => {
     if (!data) {
@@ -42,9 +57,9 @@ export const meta: MetaFunction<typeof loader> = ({ data, matches }) => {
 
     const {
         post: {
+            createdAt,
             advancedTitling: { metaTitle },
             meta: { description, keywords, author, allowSearchEngineIndexing },
-            stats: { created },
             updatedAt,
         },
     } = data;
@@ -55,7 +70,7 @@ export const meta: MetaFunction<typeof loader> = ({ data, matches }) => {
     const meta: MetaDescriptor[] = [
         { title: `${metaTitle}${rootTitle ? ` | ${rootTitle}` : ''}` },
         { name: 'robots', content: allowSearchEngineIndexing ? 'follow, index' : 'nofollow, noindex' },
-        { name: 'dcterms.created', content: created },
+        { name: 'dcterms.created', content: createdAt },
         { name: 'dcterms.modified', content: updatedAt },
     ];
 
@@ -77,29 +92,41 @@ export const meta: MetaFunction<typeof loader> = ({ data, matches }) => {
 export default component('PostPage', function () {
     const {
         post: {
+            id,
+            createdAt,
             pageSlug,
             title,
             advancedTitling: { tabTitle },
-            stats: { created, tags, totalViews },
+            tags,
             sections,
             layout,
         },
-        ip
+        postStats,
+        userActions,
     } = useLoaderData<typeof loader>();
-
-    const connectToSection = useSectionsObserver(layout);
+    const fetcherRef = useMirrorRef(useFetcher());
+    const userActionsRef = useMirrorRef(userActions);
 
     useEffect(() => {
-        (async () => {
-          try {
-            const res = await fetch('https://jsonip.com/')
+        const timeoutId = setTimeout(async () => {
+            const { isViewed } = await userActionsRef.current;
 
-            console.log('<<', await res.json())
-          } catch (error) {
-            console.log('<<', 'error')
-          }
-        })()
-    }, [])
+            if (isViewed) {
+                return;
+            }
+
+            fetcherRef.current.submit(
+                { intent: 'incrementViewsCount', postId: id },
+                { method: 'PATCH', preventScrollReset: true }
+            );
+        }, 20 * TimeInMs.SECOND);
+
+        return () => {
+            clearTimeout(timeoutId);
+        };
+    }, [userActionsRef, fetcherRef, id]);
+
+    const connectToSection = useSectionsObserver(layout);
 
     return (
         <main className={this.mcn('my-10 contain prose dark:prose-invert')}>
@@ -110,13 +137,24 @@ export default component('PostPage', function () {
                     title={tabTitle}
                     mainTag={tags[0]}
                 />
-                <div>Client IP: {ip || 'not found'}</div>
                 <PostHeader
                     title={title}
                     tags={tags}
-                    totalViews={totalViews}
-                    created={created}
+                    created={createdAt}
                 />
+                <Suspense fallback={<PostActionsFallback />}>
+                    <Await resolve={Promise.all([postStats, userActions])}>
+                        {([{ totalViews, likes, dislikes }, { rating }]) => (
+                            <PostActions
+                                postId={id}
+                                totalViews={totalViews}
+                                likes={likes}
+                                dislikes={dislikes}
+                                userRating={rating}
+                            />
+                        )}
+                    </Await>
+                </Suspense>
                 {sections.map((sectionData) => {
                     const { sectionId, title: sectionTitle } = sectionData;
 
@@ -148,3 +186,37 @@ export default component('PostPage', function () {
         </main>
     );
 });
+
+export const action = async ({ request, context: { payload } }: ActionFunctionArgs) => {
+    const formData = await request.formData();
+    const postId = formData.get('postId');
+
+    if (typeof postId !== 'string') {
+        return json({ ok: false });
+    }
+
+    const args: UpdateFunctionArgs = {
+        request,
+        payload,
+        postId,
+    };
+
+    return namedAction(formData, {
+        async incrementViewsCount() {
+            const response = await incrementViewsCount(args);
+
+            return json(response);
+        },
+        async updateUserRating() {
+            const rating = formData.get('rating') || null
+
+            if (!isUserRating(rating)) {
+                return json({ ok: false })
+            }
+
+            const response = await updateUserRating(args, rating);
+
+            return json(response);
+        },
+    });
+};
