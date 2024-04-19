@@ -38,6 +38,10 @@ RUN yarn install --production=true
 # patch some node-modules packages
 RUN yarn postinstall
 
+# generate payload types
+RUN yarn generate:types
+
+
 # Final stage for app image
 FROM base
 
