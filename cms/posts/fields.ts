@@ -99,7 +99,7 @@ const AdvancedTitling: Field = {
                     type: 'text',
                 },
                 {
-                    name: 'tabTitle',
+                    name: 'breadcrumbTitle',
                     type: 'text',
                 },
                 {

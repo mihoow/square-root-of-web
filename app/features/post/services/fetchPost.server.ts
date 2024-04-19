@@ -92,7 +92,7 @@ function normalizePost(rawData: RawPost): Post {
         createdAt,
         publishedAt,
         tags,
-        advancedTitling: { metaTitle, navTitle = title, tabTitle = navTitle } = {},
+        advancedTitling: { metaTitle, navTitle = title, breadcrumbTitle = navTitle } = {},
         sections: rawSections,
     } = rawData;
 
@@ -105,7 +105,7 @@ function normalizePost(rawData: RawPost): Post {
         advancedTitling: {
             metaTitle: metaTitle || title,
             navTitle: navTitle || title,
-            tabTitle: tabTitle || navTitle || title,
+            breadcrumbTitle: breadcrumbTitle || navTitle || title,
         },
         sections,
         layout: extractPageLayout(sections),

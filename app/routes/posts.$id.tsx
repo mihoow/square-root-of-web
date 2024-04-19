@@ -169,7 +169,7 @@ export default component('PostPage', function () {
             updatedAt,
             pageSlug,
             title,
-            advancedTitling: { tabTitle },
+            advancedTitling: { breadcrumbTitle },
             tags,
             sections,
             layout,
@@ -211,7 +211,7 @@ export default component('PostPage', function () {
                 <Breadcrumbs
                     className={this.cn('not-prose mb-7')}
                     pageSlug={pageSlug}
-                    title={tabTitle}
+                    title={breadcrumbTitle}
                     mainTag={tags[0]}
                 />
                 <PostHeader

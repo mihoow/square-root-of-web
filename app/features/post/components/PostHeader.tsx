@@ -5,7 +5,6 @@ import { TAGS_CONFIG } from '../config';
 import { component } from '~/utils/component';
 import { toRelativeTime } from '~/utils/relativeTime';
 import { useHydrated } from 'remix-utils/use-hydrated';
-import { useMemo } from 'react';
 
 type PostHeaderProps = {
     title: string;
