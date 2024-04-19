@@ -16,12 +16,13 @@ export const beforeChangeHook: CollectionBeforeChangeHook<Post> = ({ data, origi
     return data
 }
 
-export const afterChangeHook: CollectionAfterChangeHook = async ({ operation, doc, req: { payload } }) => {
+export const afterChangeHook: CollectionAfterChangeHook = async ({ operation, doc, req, req: { payload } }) => {
     if (operation !== 'create') {
         return
     }
 
     await payload.create({
+        req,
         collection: 'post-statistics',
         data: {
             postId: doc.id,
@@ -34,8 +35,9 @@ export const afterChangeHook: CollectionAfterChangeHook = async ({ operation, do
     return doc
 }
 
-export const afterDeleteHook: CollectionAfterDeleteHook = async ({ id: postId, req: { payload } }) => {
+export const afterDeleteHook: CollectionAfterDeleteHook = async ({ id: postId, req, req: { payload } }) => {
     await payload.delete({
+        req,
         collection: 'post-statistics',
         where: { postId: { equals: postId } }
     })
