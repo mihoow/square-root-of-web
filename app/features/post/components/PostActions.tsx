@@ -5,6 +5,7 @@ import type { PropsWithChildren, type FC } from 'react';
 import type { PostStats, UserRating } from '../type';
 import { component } from '~/utils/component';
 import { Form } from '~/components/Form';
+import { HoneypotInputs } from 'remix-utils/honeypot/react';
 
 const CounterItem = component<PropsWithChildren<{ value: number }>>(
     'CounterItem',
@@ -64,6 +65,7 @@ export const PostActions = component<PostStats & { userRating: UserRating }>(
                             className={this.cn('flex items-center')}
                         >
                             <fieldset disabled={!postId}>
+                                <HoneypotInputs />
                                 <button type='submit'>
                                     {userRating === 'likes'
                                         ? renderIcon(

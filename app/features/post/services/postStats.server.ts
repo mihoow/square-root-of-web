@@ -5,6 +5,7 @@ import type { Payload } from 'payload';
 import { TimeInMs } from '~/config/util';
 import { getClientIPAddress } from 'remix-utils/get-client-ip-address'
 import { getRedisClient } from '~/services/redis.server';
+import { isbot } from 'isbot';
 
 export type UpdateFunctionArgs = {
     request: Request;
@@ -107,7 +108,11 @@ async function handleUpdate(
 }
 
 export async function incrementViewsCount(args: UpdateFunctionArgs): UpdateFunctionReturnType {
-    const { payload, postId } = args;
+    const { request, payload, postId } = args;
+
+    if (isbot(request.headers.get('user-agent') || '')) {
+        return { ok: false }
+    }
 
     return handleUpdate(args, async ({ isViewed }, handler) => {
         if (isViewed) {

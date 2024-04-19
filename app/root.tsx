@@ -5,9 +5,11 @@ import { Links, Meta, Outlet, Scripts, ScrollRestoration, json, useLoaderData } 
 import type { LinksFunction, LoaderFunctionArgs, MetaFunction } from '@remix-run/node';
 
 import { Header } from './components/Header';
+import { HoneypotProvider } from 'remix-utils/honeypot/react';
 import { MediaProvider } from './features/media/contexts/Media.provider';
 import { ThemeProvider } from './features/theme/contexts/Theme.provider';
 import { getThemeSession } from './features/theme/service.server';
+import { honeypot } from './services/honeypot.server';
 import { useTheme } from './features/theme/contexts/Theme.context';
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -15,6 +17,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
     return json({
         theme: themeSession.getTheme(),
+        honeypotInputProps: honeypot.getInputProps(),
     });
 };
 
@@ -46,6 +49,7 @@ export const links: LinksFunction = () => {
 };
 
 function App() {
+    const { honeypotInputProps } = useLoaderData<typeof loader>();
     const [theme] = useTheme();
 
     return (
@@ -58,10 +62,12 @@ function App() {
                 <Links />
             </head>
             <body className='dark:bg-darkBackground'>
-                <div>
-                    <Header />
-                    <Outlet />
-                </div>
+                <HoneypotProvider {...honeypotInputProps}>
+                    <div>
+                        <Header />
+                        <Outlet />
+                    </div>
+                </HoneypotProvider>
                 <ScrollRestoration />
                 <Scripts />
             </body>

@@ -30,7 +30,9 @@ import { TimeInMs } from '~/config/util';
 import type { UpdateFunctionArgs } from '~/features/post/services/postStats.server';
 import { component } from '~/utils/component';
 import { getPostBySlug } from '~/features/post/services/fetchPost.server';
+import { honeypot } from '~/services/honeypot.server';
 import { isUserRating } from '~/features/post/utils';
+import { isbot } from 'isbot';
 import { namedAction } from 'remix-utils/named-action';
 import { useMirrorRef } from '~/hooks/useMirrorRef';
 import { useSectionsObserver } from '~/features/post/hooks/useSectionsObserver';
@@ -140,15 +142,21 @@ export const action = async ({ request, context: { payload } }: ActionFunctionAr
             return json(response);
         },
         async updateUserRating() {
-            const rating = formData.get('rating') || null;
+            try {
+                honeypot.check(formData);
 
-            if (!isUserRating(rating)) {
+                const rating = formData.get('rating') || null;
+
+                if (!isUserRating(rating)) {
+                    return json({ ok: false });
+                }
+
+                const response = await updateUserRating(args, rating);
+
+                return json(response);
+            } catch (error) {
                 return json({ ok: false });
             }
-
-            const response = await updateUserRating(args, rating);
-
-            return json(response);
         },
     });
 };
@@ -173,6 +181,10 @@ export default component('PostPage', function () {
 
     useEffect(() => {
         const timeoutId = setTimeout(async () => {
+            if (isbot(navigator.userAgent)) {
+                return
+            }
+
             const { isViewed } = await userActionsRef.current;
 
             if (isViewed) {
@@ -251,4 +263,4 @@ export default component('PostPage', function () {
     );
 });
 
-export const ErrorBoundary = ErrorPage
+export const ErrorBoundary = ErrorPage;
