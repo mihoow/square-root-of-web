@@ -91,6 +91,7 @@ function normalizePost(rawData: RawPost): Post {
         title,
         createdAt,
         publishedAt,
+        cardDescription,
         tags,
         advancedTitling: { metaTitle, navTitle = title, breadcrumbTitle = navTitle } = {},
         sections: rawSections,
@@ -101,6 +102,9 @@ function normalizePost(rawData: RawPost): Post {
     return {
         ...rawData,
         publishedAt: publishedAt || createdAt,
+        cardDescription: cardDescription
+            ? { content: cardDescription.contentHTML || '' }
+            : cardDescription,
         tags: tags || [],
         advancedTitling: {
             metaTitle: metaTitle || title,

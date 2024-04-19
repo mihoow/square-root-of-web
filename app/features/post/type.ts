@@ -2,6 +2,7 @@ import type { ArrayItem, Must, Override } from '~/types/util';
 import type {
     PostStatistic,
     AdvancedTitling as RawAdvancedTitling,
+    CardDescriptionData as RawCardDescription,
     CodePenData as RawCodePenData,
     Post as RawPost,
     QAItems as RawQAItems,
@@ -14,6 +15,10 @@ type CommonDocProperties = {
     id: string;
     createdAt: string;
     updatedAt: string;
+}
+
+type CardDescriptionData = Omit<RawCardDescription, 'content' | 'contentHTML'> & {
+    content: string;
 }
 
 type RawQAItem = ArrayItem<RawQAItems>;
@@ -55,8 +60,9 @@ export type PageLayoutItem = {
     subsections?: PageLayoutItem[];
 };
 
-export type Post = Omit<RawPost, 'publishedAt' | 'advancedTitling' | 'tags' | 'sections'> & {
+export type Post = Omit<RawPost, 'publishedAt' | 'cardDescription' | 'advancedTitling' | 'tags' | 'sections'> & {
     publishedAt: string;
+    cardDescription?: CardDescriptionData;
     advancedTitling: AdvancedTitling;
     tags: PostTag[];
     sections: SectionItem[];

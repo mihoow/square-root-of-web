@@ -1,5 +1,5 @@
 import type { Field } from 'payload/types';
-import { validateUrlFriendlyText } from './utils';
+import { addRichTextFields, validateUrlFriendlyText } from './utils';
 
 const PageSlug: Field = {
     name: 'pageSlug',
@@ -46,7 +46,7 @@ const MetaFields: Field = {
                     name: 'allowSearchEngineIndexing',
                     type: 'checkbox',
                     defaultValue: true,
-                    required: true
+                    required: true,
                 },
                 {
                     name: 'author',
@@ -58,13 +58,20 @@ const MetaFields: Field = {
     ],
 };
 
+const CardDescription: Field = {
+    name: 'cardDescription',
+    type: 'group',
+    interfaceName: 'CardDescriptionData',
+    fields: addRichTextFields('content'),
+};
+
 const PublishedDate: Field = {
     name: 'publishedAt',
     type: 'date',
     admin: {
-        position: 'sidebar'
-    }
-}
+        position: 'sidebar',
+    },
+};
 
 const Tags: Field = {
     name: 'tags',
@@ -72,13 +79,13 @@ const Tags: Field = {
     hasMany: true,
     admin: {
         isClearable: true,
-        position: 'sidebar'
+        position: 'sidebar',
     },
     options: [
         { value: 'java-script', label: 'JavaScript' },
         { value: 'web-development', label: 'Web development' },
     ],
-}
+};
 
 const AdvancedTitling: Field = {
     type: 'collapsible',
@@ -111,4 +118,4 @@ const AdvancedTitling: Field = {
     ],
 };
 
-export default [PageSlug, Title, MetaFields, PublishedDate, Tags, AdvancedTitling] satisfies Field[];
+export default [PageSlug, Title, MetaFields, CardDescription, PublishedDate, Tags, AdvancedTitling] satisfies Field[];
