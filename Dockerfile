@@ -35,6 +35,8 @@ RUN yarn run build
 # Remove development dependencies
 RUN yarn install --production=true
 
+# patch some node-modules packages
+RUN yarn postinstall
 
 # Final stage for app image
 FROM base
