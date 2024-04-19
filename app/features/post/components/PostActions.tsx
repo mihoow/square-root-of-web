@@ -2,6 +2,7 @@ import { EyeOpenIcon, HeartFilledIcon } from '@radix-ui/react-icons';
 import type { PostStats, UserRating } from '../type';
 import { useEffect, useState } from 'react';
 
+import { ActionType } from '../config';
 import { Form } from '~/components/Form';
 import { HoneypotInputs } from 'remix-utils/honeypot/react';
 import type { PropsWithChildren } from 'react';
@@ -57,7 +58,7 @@ const RatePostForm = component<{ postId: string; userRating: UserRating }>(
             <Form
                 method='PATCH'
                 hiddenInputs={{
-                    intent: 'updateUserRating',
+                    intent: ActionType.UPDATE_USER_RATING,
                     postId,
                     rating: isLiked ? '' : 'likes',
                 }}

@@ -1,4 +1,5 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaDescriptor, MetaFunction } from '@remix-run/node';
+import { ActionType, TIME_TO_INCREASE_VIEWS } from '~/features/post/config';
 import { Await, useFetcher, useLoaderData } from '@remix-run/react';
 import {
     DebugResponse,
@@ -26,7 +27,6 @@ import { PostHeader } from '~/features/post/components/PostHeader';
 import { PostSection } from '~/features/post/components/PostSection';
 import { SectionRenderer } from '~/features/post/components/SectionRenderer';
 import type { ShouldRevalidateFunction } from '@remix-run/react';
-import { TimeInMs } from '~/config/util';
 import type { UpdateFunctionArgs } from '~/features/post/services/postStats.server';
 import { component } from '~/utils/component';
 import { getPostBySlug } from '~/features/post/services/fetchPost.server';
@@ -136,12 +136,12 @@ export const action = async ({ request, context: { payload } }: ActionFunctionAr
     };
 
     return namedAction(formData, {
-        async incrementViewsCount() {
+        [ActionType.INCREMENT_VIEWS_COUNT]: async () => {
             const response = await incrementViewsCount(args);
 
             return json(response);
         },
-        async updateUserRating() {
+        [ActionType.UPDATE_USER_RATING]: async () => {
             try {
                 honeypot.check(formData);
 
@@ -195,7 +195,7 @@ export default component('PostPage', function () {
                 { intent: 'incrementViewsCount', postId: id },
                 { method: 'PATCH', preventScrollReset: true }
             );
-        }, 20 * TimeInMs.SECOND);
+        }, TIME_TO_INCREASE_VIEWS);
 
         return () => {
             clearTimeout(timeoutId);
