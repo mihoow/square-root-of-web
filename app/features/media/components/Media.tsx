@@ -43,5 +43,5 @@ export const Media = component<PropsWithChildren<MediaProps>>('Media', function 
         ? ''
         : (match.split(' ') as BreakpointMatcher[]).map((el) => BREAKPOINT_MATCH_TO_TW_CLASS[el]).join(' ');
 
-    return <div className={this.mcn(className, displayClasses)}>{children}</div>;
+    return <div className={this.mcn(className, displayClasses, 'h-full')}>{children}</div>;
 });

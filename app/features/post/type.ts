@@ -55,7 +55,8 @@ export type PageLayoutItem = {
     subsections?: PageLayoutItem[];
 };
 
-export type Post = Omit<RawPost, 'advancedTitling' | 'tags' | 'sections'> & {
+export type Post = Omit<RawPost, 'publishedAt' | 'advancedTitling' | 'tags' | 'sections'> & {
+    publishedAt: string;
     advancedTitling: AdvancedTitling;
     tags: PostTag[];
     sections: SectionItem[];

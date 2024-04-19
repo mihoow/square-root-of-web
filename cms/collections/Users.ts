@@ -10,8 +10,19 @@ const Users: CollectionConfig = {
     read: () => true,
   },
   fields: [
-    // Email added by default
-    // Add more fields as needed
+    {
+      name: 'role',
+      type: 'select',
+      required: true,
+      options: [
+        { value: 'user', label: 'user' },
+        { value: 'admin', label: 'admin' }
+      ],
+      defaultValue: 'user',
+      admin: {
+        width: '400px'
+      }
+    }
   ],
 };
 

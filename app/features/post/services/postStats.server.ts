@@ -3,7 +3,7 @@ import type { PostStats, UserPostActions, UserRating } from '../type';
 import type { CollectionModel } from '@payloadcms/db-mongodb/dist/types';
 import type { Payload } from 'payload';
 import { TimeInMs } from '~/config/util';
-import { getRedisClient } from '~/services/redis';
+import { getRedisClient } from '~/services/redis.server';
 
 export type UpdateFunctionArgs = {
     request: Request;

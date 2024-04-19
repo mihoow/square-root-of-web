@@ -1,4 +1,20 @@
-import type { CollectionAfterChangeHook, CollectionAfterDeleteHook } from "payload/types";
+import type { CollectionAfterChangeHook, CollectionAfterDeleteHook, CollectionBeforeChangeHook } from "payload/types";
+
+import type { Post } from "payload/generated-types";
+
+export const beforeChangeHook: CollectionBeforeChangeHook<Post> = ({ data, originalDoc }) => {
+    const isBeingPublished = (!originalDoc || originalDoc._status === 'draft') && data._status === 'published'
+    const hasNoPublishDate = !originalDoc?.publishedAt
+
+    if (isBeingPublished && hasNoPublishDate) {
+        return {
+            ...data,
+            publishedAt: new Date()
+        }
+    }
+
+    return data
+}
 
 export const afterChangeHook: CollectionAfterChangeHook = async ({ operation, doc, req: { payload } }) => {
     if (operation !== 'create') {

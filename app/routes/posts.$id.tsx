@@ -1,16 +1,25 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaDescriptor, MetaFunction } from '@remix-run/node';
 import { Await, useFetcher, useLoaderData } from '@remix-run/react';
+import {
+    DebugResponse,
+    InvalidParamsResponse,
+    NotAllowedResponse,
+    NotFoundResponse,
+    UnknownErrorResponse,
+} from '~/features/post/services/errorResponse.server';
 import { PostActions, PostActionsFallback } from '~/features/post/components/PostActions';
 import { Suspense, useEffect } from 'react';
-import { defer, json, redirect } from '@remix-run/node';
+import { defer, json } from '@remix-run/node';
 import {
     getPostStats,
     getUserActions,
     incrementViewsCount,
     updateUserRating,
 } from '~/features/post/services/postStats.server';
+import { isAdmin, isDevelopment, isError, isErrorResponse } from '~/services/util.server';
 
 import { Breadcrumbs } from '~/features/post/components/Breadcrumbs';
+import { ErrorPage } from '~/components/ErrorPage';
 import { Media } from '~/features/media/components/Media';
 import { OnThisPage } from '~/features/post/components/OnThisPage';
 import { PostHeader } from '~/features/post/components/PostHeader';
@@ -19,7 +28,6 @@ import { SectionRenderer } from '~/features/post/components/SectionRenderer';
 import type { ShouldRevalidateFunction } from '@remix-run/react';
 import { TimeInMs } from '~/config/util';
 import type { UpdateFunctionArgs } from '~/features/post/services/postStats.server';
-import type { UserRating } from '~/features/post/type';
 import { component } from '~/utils/component';
 import { getPostBySlug } from '~/features/post/services/fetchPost.server';
 import { isUserRating } from '~/features/post/utils';
@@ -27,22 +35,38 @@ import { namedAction } from 'remix-utils/named-action';
 import { useMirrorRef } from '~/hooks/useMirrorRef';
 import { useSectionsObserver } from '~/features/post/hooks/useSectionsObserver';
 
-export const loader = async ({ request, context: { payload }, params }: LoaderFunctionArgs) => {
+export const loader = async ({ request, context: { payload, user }, params }: LoaderFunctionArgs) => {
     if (!('id' in params) || !params.id) {
-        throw redirect('/404', { status: 404 });
+        throw new InvalidParamsResponse();
     }
 
-    const post = await getPostBySlug(payload, params.id);
+    try {
+        const post = await getPostBySlug(payload, params.id);
 
-    if (!post) {
-        throw redirect('/404', { status: 404 });
+        if (!post) {
+            throw new NotFoundResponse();
+        }
+
+        if (post._status === 'draft' && !isAdmin(user)) {
+            throw new NotAllowedResponse(post.title);
+        }
+
+        return defer({
+            post,
+            postStats: getPostStats(payload, post.id),
+            userActions: getUserActions(request, post.id),
+        });
+    } catch (error) {
+        if (isErrorResponse(error)) {
+            throw error;
+        }
+
+        if (isDevelopment() && isError(error)) {
+            throw new DebugResponse(error.message);
+        }
+
+        throw new UnknownErrorResponse();
     }
-
-    return defer({
-        post,
-        postStats: getPostStats(payload, post.id),
-        userActions: getUserActions(request, post.id),
-    });
 };
 
 export const shouldRevalidate: ShouldRevalidateFunction = () => {
@@ -51,8 +75,13 @@ export const shouldRevalidate: ShouldRevalidateFunction = () => {
 };
 
 export const meta: MetaFunction<typeof loader> = ({ data, matches }) => {
+    const criticalMeta: MetaDescriptor[] = [
+        { charSet: 'utf-8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+    ];
+
     if (!data) {
-        return [];
+        return criticalMeta;
     }
 
     const {
@@ -72,6 +101,7 @@ export const meta: MetaFunction<typeof loader> = ({ data, matches }) => {
         { name: 'robots', content: allowSearchEngineIndexing ? 'follow, index' : 'nofollow, noindex' },
         { name: 'dcterms.created', content: createdAt },
         { name: 'dcterms.modified', content: updatedAt },
+        ...criticalMeta,
     ];
 
     if (description) {
@@ -87,6 +117,40 @@ export const meta: MetaFunction<typeof loader> = ({ data, matches }) => {
     }
 
     return meta;
+};
+
+export const action = async ({ request, context: { payload } }: ActionFunctionArgs) => {
+    const formData = await request.formData();
+    const postId = formData.get('postId');
+
+    if (typeof postId !== 'string') {
+        return json({ ok: false });
+    }
+
+    const args: UpdateFunctionArgs = {
+        request,
+        payload,
+        postId,
+    };
+
+    return namedAction(formData, {
+        async incrementViewsCount() {
+            const response = await incrementViewsCount(args);
+
+            return json(response);
+        },
+        async updateUserRating() {
+            const rating = formData.get('rating') || null;
+
+            if (!isUserRating(rating)) {
+                return json({ ok: false });
+            }
+
+            const response = await updateUserRating(args, rating);
+
+            return json(response);
+        },
+    });
 };
 
 export default component('PostPage', function () {
@@ -187,36 +251,4 @@ export default component('PostPage', function () {
     );
 });
 
-export const action = async ({ request, context: { payload } }: ActionFunctionArgs) => {
-    const formData = await request.formData();
-    const postId = formData.get('postId');
-
-    if (typeof postId !== 'string') {
-        return json({ ok: false });
-    }
-
-    const args: UpdateFunctionArgs = {
-        request,
-        payload,
-        postId,
-    };
-
-    return namedAction(formData, {
-        async incrementViewsCount() {
-            const response = await incrementViewsCount(args);
-
-            return json(response);
-        },
-        async updateUserRating() {
-            const rating = formData.get('rating') || null
-
-            if (!isUserRating(rating)) {
-                return json({ ok: false })
-            }
-
-            const response = await updateUserRating(args, rating);
-
-            return json(response);
-        },
-    });
-};
+export const ErrorBoundary = ErrorPage

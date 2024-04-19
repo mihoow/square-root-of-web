@@ -20,51 +20,6 @@ const Title: Field = {
     required: true,
 };
 
-const AdvancedTitling: Field = {
-    type: 'collapsible',
-    label: 'Advanced titling',
-    required: true,
-    admin: {
-        initCollapsed: true,
-        position: 'sidebar',
-    },
-    fields: [
-        {
-            name: 'advancedTitling',
-            type: 'group',
-            interfaceName: 'AdvancedTitling',
-            fields: [
-                {
-                    name: 'metaTitle',
-                    type: 'text',
-                },
-                {
-                    name: 'tabTitle',
-                    type: 'text',
-                },
-                {
-                    name: 'navTitle',
-                    type: 'text',
-                },
-            ],
-        },
-    ],
-};
-
-const Tags: Field = {
-    name: 'tags',
-    type: 'select',
-    hasMany: true,
-    admin: {
-        isClearable: true,
-        position: 'sidebar'
-    },
-    options: [
-        { value: 'java-script', label: 'JavaScript' },
-        { value: 'web-development', label: 'Web development' },
-    ],
-}
-
 const MetaFields: Field = {
     type: 'collapsible',
     label: 'Meta attributes',
@@ -103,4 +58,57 @@ const MetaFields: Field = {
     ],
 };
 
-export default [PageSlug, Title, MetaFields, AdvancedTitling, Tags] satisfies Field[];
+const PublishedDate: Field = {
+    name: 'publishedAt',
+    type: 'date',
+    admin: {
+        position: 'sidebar'
+    }
+}
+
+const Tags: Field = {
+    name: 'tags',
+    type: 'select',
+    hasMany: true,
+    admin: {
+        isClearable: true,
+        position: 'sidebar'
+    },
+    options: [
+        { value: 'java-script', label: 'JavaScript' },
+        { value: 'web-development', label: 'Web development' },
+    ],
+}
+
+const AdvancedTitling: Field = {
+    type: 'collapsible',
+    label: 'Advanced titling',
+    required: true,
+    admin: {
+        initCollapsed: true,
+        position: 'sidebar',
+    },
+    fields: [
+        {
+            name: 'advancedTitling',
+            type: 'group',
+            interfaceName: 'AdvancedTitling',
+            fields: [
+                {
+                    name: 'metaTitle',
+                    type: 'text',
+                },
+                {
+                    name: 'tabTitle',
+                    type: 'text',
+                },
+                {
+                    name: 'navTitle',
+                    type: 'text',
+                },
+            ],
+        },
+    ],
+};
+
+export default [PageSlug, Title, MetaFields, PublishedDate, Tags, AdvancedTitling] satisfies Field[];

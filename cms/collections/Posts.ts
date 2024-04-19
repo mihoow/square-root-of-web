@@ -1,4 +1,4 @@
-import { afterChangeHook, afterDeleteHook } from '../posts/hooks'
+import { afterChangeHook, afterDeleteHook, beforeChangeHook } from '../posts/hooks'
 
 import type { CollectionConfig } from 'payload/types';
 import blocksField from '../posts/blocks';
@@ -12,8 +12,14 @@ const Posts: CollectionConfig = {
     },
     fields: [...fields, blocksField],
     hooks: {
+        beforeChange: [beforeChangeHook],
         afterChange: [afterChangeHook],
         afterDelete: [afterDeleteHook]
+    },
+    versions: {
+        drafts: {
+            autosave: false
+        }
     }
 };
 

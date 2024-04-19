@@ -89,6 +89,8 @@ function extractPageLayout(sections: SectionItem[]): PageLayoutItem[] {
 function normalizePost(rawData: RawPost): Post {
     const {
         title,
+        createdAt,
+        publishedAt,
         tags,
         advancedTitling: { metaTitle, navTitle = title, tabTitle = navTitle } = {},
         sections: rawSections,
@@ -98,6 +100,7 @@ function normalizePost(rawData: RawPost): Post {
 
     return {
         ...rawData,
+        publishedAt: publishedAt || createdAt,
         tags: tags || [],
         advancedTitling: {
             metaTitle: metaTitle || title,
