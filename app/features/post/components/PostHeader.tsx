@@ -4,6 +4,7 @@ import type { PostTag } from '../type';
 import { TAGS_CONFIG } from '../config';
 import { component } from '~/utils/component';
 import { toRelativeTime } from '~/utils/relativeTime';
+import { useHydrated } from 'remix-utils/use-hydrated';
 import { useMemo } from 'react';
 
 type PostHeaderProps = {
@@ -16,6 +17,8 @@ type PostHeaderProps = {
 const DateInfo = component<Pick<PostHeaderProps, 'publishedAt' | 'updatedAt'>>(
     'DateInfo',
     function ({ className, publishedAt, updatedAt }) {
+        const isHydrated = useHydrated()
+
         const publishedDate = new Date(publishedAt);
         const updatedDate = new Date(updatedAt);
 
@@ -27,7 +30,7 @@ const DateInfo = component<Pick<PostHeaderProps, 'publishedAt' | 'updatedAt'>>(
                 <time dateTime={publishedDate.toISOString()}>
                     {new Intl.DateTimeFormat('en-US', { dateStyle: 'full' }).format(publishedDate)}
                 </time>
-                {wasUpdatedAfterBeingPublished && (
+                {(isHydrated && wasUpdatedAfterBeingPublished) && (
                     <span>
                         (updated{' '}
                         <time dateTime={updatedDate.toISOString()}>
