@@ -1,11 +1,11 @@
-import { EyeOpenIcon, HeartIcon, HeartFilledIcon } from '@radix-ui/react-icons';
-import { useState, useEffect } from 'react';
-import type { PropsWithChildren, type FC } from 'react';
-
+import { EyeOpenIcon, HeartFilledIcon } from '@radix-ui/react-icons';
 import type { PostStats, UserRating } from '../type';
-import { component } from '~/utils/component';
+import { useEffect, useState } from 'react';
+
 import { Form } from '~/components/Form';
 import { HoneypotInputs } from 'remix-utils/honeypot/react';
+import type { PropsWithChildren } from 'react';
+import { component } from '~/utils/component';
 
 const CounterItem = component<PropsWithChildren<{ value: number }>>(
     'CounterItem',
@@ -43,39 +43,59 @@ const CounterItem = component<PropsWithChildren<{ value: number }>>(
     }
 );
 
+const RatePostForm = component<{ postId: string; userRating: UserRating }>(
+    'RatePostForm',
+    function ({ className, postId, userRating }) {
+        const ICON_CLASS = {
+            liked: this.cn('text-red-500 hover:text-white'),
+            notLiked: this.cn('text-white hover:text-red-500')
+        }
+
+        const isLiked = userRating === 'likes'
+
+        return (
+            <Form
+                method='PATCH'
+                hiddenInputs={{
+                    intent: 'updateUserRating',
+                    postId,
+                    rating: isLiked ? '' : 'likes',
+                }}
+                className={this.mcn(className, 'flex items-center')}
+            >
+                <fieldset
+                    disabled={!postId}
+                    className={this.cn('flex items-center')}
+                >
+                    <HoneypotInputs />
+                    <button type='submit'>
+                        <HeartFilledIcon
+                            className={this.cn(
+                                'w-5 h-5 stroke-black transition-colors',
+                                ICON_CLASS[isLiked ? 'liked' : 'notLiked']
+                            )}
+                        />
+                    </button>
+                </fieldset>
+            </Form>
+        );
+    }
+);
+
 export const PostActions = component<PostStats & { userRating: UserRating }>(
     'PostActions',
     function ({ className, postId, totalViews, likes, userRating }) {
-        const renderIcon = (Icon: FC<{ className?: string }>, className = '') => (
-            <Icon className={this.cn('w-5 h-5', className)} />
-        );
-
         return (
             <div className={this.mcn(className, 'px-3 py-2 flex items-center gap-7 border-y-2')}>
-                <CounterItem value={totalViews}>{renderIcon(EyeOpenIcon)}</CounterItem>
+                <CounterItem value={totalViews}>
+                    <EyeOpenIcon className={this.cn('w-5 h-5')} />
+                </CounterItem>
                 <div className={this.cn('flex items-center gap-1')}>
                     <CounterItem value={likes}>
-                        <Form
-                            method='PATCH'
-                            hiddenInputs={{
-                                intent: 'updateUserRating',
-                                postId,
-                                rating: userRating === 'likes' ? '' : 'likes',
-                            }}
-                            className={this.cn('flex items-center')}
-                        >
-                            <fieldset disabled={!postId}>
-                                <HoneypotInputs />
-                                <button type='submit'>
-                                    {userRating === 'likes'
-                                        ? renderIcon(
-                                              HeartFilledIcon,
-                                              'text-red-400 hover:text-current transition-colors'
-                                          )
-                                        : renderIcon(HeartIcon, 'hover:text-red-400 transition-colors')}
-                                </button>
-                            </fieldset>
-                        </Form>
+                        <RatePostForm
+                            postId={postId}
+                            userRating={userRating}
+                        />
                     </CounterItem>
                 </div>
             </div>
