@@ -165,7 +165,8 @@ export default component('PostPage', function () {
     const {
         post: {
             id,
-            createdAt,
+            publishedAt,
+            updatedAt,
             pageSlug,
             title,
             advancedTitling: { tabTitle },
@@ -216,7 +217,8 @@ export default component('PostPage', function () {
                 <PostHeader
                     title={title}
                     tags={tags}
-                    created={createdAt}
+                    publishedAt={publishedAt}
+                    updatedAt={updatedAt}
                 />
                 <Suspense fallback={<PostActionsFallback />}>
                     <Await resolve={Promise.all([postStats, userActions])}>

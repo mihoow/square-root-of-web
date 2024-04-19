@@ -1,20 +1,49 @@
 import { Badge } from 'flowbite-react/components/Badge';
 import { CalendarIcon } from '@radix-ui/react-icons';
-import { Image } from '~/components/Image';
-import { Link } from '@remix-run/react';
 import type { PostTag } from '../type';
 import { TAGS_CONFIG } from '../config';
 import { component } from '~/utils/component';
+import { toRelativeTime } from '~/utils/relativeTime';
+import { useMemo } from 'react';
 
 type PostHeaderProps = {
     title: string;
     tags: PostTag[];
-    created: string;
+    publishedAt: string;
+    updatedAt: string;
 };
+
+const DateInfo = component<Pick<PostHeaderProps, 'publishedAt' | 'updatedAt'>>(
+    'DateInfo',
+    function ({ className, publishedAt, updatedAt }) {
+        const publishedDate = new Date(publishedAt);
+        const updatedDate = new Date(updatedAt);
+
+        const wasUpdatedAfterBeingPublished = updatedDate.getTime() > publishedDate.getTime();
+
+        return (
+            <div className={this.mcn(className, 'flex items-center flex-wrap gap-2 text-sm')}>
+                <CalendarIcon className={this.cn('w-4 h-4')} />
+                <time dateTime={publishedDate.toISOString()}>
+                    {new Intl.DateTimeFormat('en-US', { dateStyle: 'full' }).format(publishedDate)}
+                </time>
+                {wasUpdatedAfterBeingPublished && (
+                    <span>
+                        (updated{' '}
+                        <time dateTime={updatedDate.toISOString()}>
+                            {toRelativeTime(updatedDate, new Intl.RelativeTimeFormat('en-US'))}
+                        </time>
+                        )
+                    </span>
+                )}
+            </div>
+        );
+    }
+);
 
 export const PostHeader = component<PostHeaderProps>(
     'PostHeader',
-    function ({ className, title, tags, created }) {
+    function ({ className, title, tags, publishedAt, updatedAt }) {
         return (
             <header className={this.mcn(className, 'mb-[0.8em]')}>
                 {tags.length > 0 && (
@@ -31,34 +60,10 @@ export const PostHeader = component<PostHeaderProps>(
                     </ul>
                 )}
                 <h1 className={this.cn('mb-4')}>{title}</h1>
-                <div className={this.cn('mb-4 flex gap-3 not-prose')}>
-                    <div className={this.cn('w-14 h-14 flex items-center justify-center bg-gray-700 rounded-full overflow-hidden')}>
-                        <Image
-                            source='/images/snap.png'
-                            alt="author's face"
-                            width={60}
-                            height={43}
-                            className={this.cn()}
-                        />
-                    </div>
-                    <div className={this.cn('flex flex-col justify-between')}>
-                        <span>
-                            by{' '}
-                            <Link
-                                to='/'
-                                className={this.cn('underline hover:text-primary')}
-                            >
-                                Michał Wieczorek
-                            </Link>
-                        </span>
-                        <div className={this.cn('flex items-center gap-2')}>
-                            <CalendarIcon className={this.cn('w-4 h-4')} />
-                            <span className={this.cn('text-sm')}>
-                                {new Intl.DateTimeFormat('en-US', { dateStyle: 'full' }).format(new Date(created))}
-                            </span>
-                        </div>
-                    </div>
-                </div>
+                <DateInfo
+                    publishedAt={publishedAt}
+                    updatedAt={updatedAt}
+                />
             </header>
         );
     }
