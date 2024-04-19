@@ -26,6 +26,12 @@ RUN apk update && \
 COPY --link package.json yarn.lock ./
 RUN yarn install --frozen-lockfile --production=false
 
+# patch some node-modules packages
+RUN yarn postinstall
+
+# generate payload types
+RUN yarn generate:types
+
 # Copy application code
 COPY --link . .
 
@@ -34,12 +40,6 @@ RUN yarn run build
 
 # Remove development dependencies
 RUN yarn install --production=true
-
-# patch some node-modules packages
-RUN yarn postinstall
-
-# generate payload types
-RUN yarn generate:types
 
 
 # Final stage for app image
