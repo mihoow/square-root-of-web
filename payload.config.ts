@@ -16,7 +16,7 @@ export default buildConfig({
             build: {
                 ...incomingViteConfig.build,
                 emptyOutDir: false,
-            },
+            }
         }),
     },
     editor: lexicalEditor({}),

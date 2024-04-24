@@ -102,9 +102,7 @@ function normalizePost(rawData: RawPost): Post {
     return {
         ...rawData,
         publishedAt: publishedAt || createdAt,
-        cardDescription: cardDescription
-            ? { content: cardDescription.contentHTML || '' }
-            : cardDescription,
+        cardDescription: cardDescription ? { content: cardDescription.contentHTML || '' } : cardDescription,
         tags: tags || [],
         advancedTitling: {
             metaTitle: metaTitle || title,
@@ -116,7 +114,7 @@ function normalizePost(rawData: RawPost): Post {
     };
 }
 
-export async function getPostBySlug(payload: Payload, slug: string) {
+export async function getPostBySlug({ payload, slug }: { payload: Payload; slug: string }) {
     const data = await payload.find({
         collection: 'posts',
         where: {

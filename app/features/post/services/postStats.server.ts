@@ -2,14 +2,14 @@ import type { PostStats, UserPostActions, UserRating } from '../type';
 
 import type { CollectionModel } from '@payloadcms/db-mongodb/dist/types';
 import type { Payload } from 'payload';
-import { TimeInMs } from '~/config/util';
-import { getClientIPAddress } from 'remix-utils/get-client-ip-address'
-import { getRedisClient } from '~/services/redis.server';
+import type { RedisClient } from '~/services/redis.server';
+import { TimeInMs } from '../../../config/util';
 import { isbot } from 'isbot';
 
 export type UpdateFunctionArgs = {
     request: Request;
     payload: Payload;
+    redis: RedisClient;
     postId: string;
 };
 
@@ -39,7 +39,8 @@ async function updateCounter(
     }
 }
 
-function getClientIp(request: Request) {
+async function getClientIp(request: Request) {
+    const { getClientIPAddress } = await import('remix-utils/get-client-ip-address')
     const clientIp = getClientIPAddress(request);
 
     if (!clientIp) {
@@ -49,10 +50,8 @@ function getClientIp(request: Request) {
     return clientIp;
 }
 
-async function getUserActionsHandler(request: Request, postId: string) {
-    const redis = await getRedisClient()
-
-    const clientIp = getClientIp(request)
+async function getUserActionsHandler(request: Request, redis: RedisClient, postId: string) {
+    const clientIp = await getClientIp(request);
     const key = `devices:${clientIp}:posts:${postId}`;
 
     return {
@@ -83,7 +82,7 @@ async function getUserActionsHandler(request: Request, postId: string) {
 }
 
 async function handleUpdate(
-    { request, postId }: UpdateFunctionArgs,
+    { request, redis, postId }: UpdateFunctionArgs,
     callback: (
         userActions: UserPostActions,
         handler: Awaited<ReturnType<typeof getUserActionsHandler>>
@@ -96,7 +95,7 @@ async function handleUpdate(
     }
 
     try {
-        const userActionsHandler = await getUserActionsHandler(request, postId);
+        const userActionsHandler = await getUserActionsHandler(request, redis, postId);
         const actions = await userActionsHandler.get();
 
         return callback(actions, userActionsHandler);
@@ -111,7 +110,7 @@ export async function incrementViewsCount(args: UpdateFunctionArgs): UpdateFunct
     const { request, payload, postId } = args;
 
     if (isbot(request.headers.get('user-agent') || '')) {
-        return { ok: false }
+        return { ok: false };
     }
 
     return handleUpdate(args, async ({ isViewed }, handler) => {
@@ -157,7 +156,7 @@ export async function updateUserRating(args: UpdateFunctionArgs, nextRating: Use
     });
 }
 
-export async function getPostStats(payload: Payload, postId: string): Promise<PostStats> {
+export async function getPostStats({ payload, postId }: { payload: Payload; postId: string }): Promise<PostStats> {
     try {
         const {
             docs: [postStats],
@@ -185,9 +184,17 @@ export async function getPostStats(payload: Payload, postId: string): Promise<Po
     }
 }
 
-export async function getUserActions(request: Request, postId: string): Promise<UserPostActions> {
+export async function getUserActions({
+    request,
+    redis,
+    postId,
+}: {
+    request: Request;
+    redis: RedisClient;
+    postId: string;
+}): Promise<UserPostActions> {
     try {
-        const { get } = await getUserActionsHandler(request, postId);
+        const { get } = await getUserActionsHandler(request, redis, postId);
 
         return get();
     } catch (error) {

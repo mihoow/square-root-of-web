@@ -5,6 +5,8 @@ import type { User } from "payload/generated-types";
 import type { Response, Request, NextFunction } from "express";
 import type { Payload } from "payload";
 import type { ServerBuild } from "@remix-run/node";
+import type { Cache } from "~/services/cache.server";
+import type { RedisClient } from "~/services/redis.server";
 
 export interface RemixRequestContext {
   payload: Payload;
@@ -12,6 +14,8 @@ export interface RemixRequestContext {
   token?: string;
   exp?: number;
   res: Response;
+  redis: RedisClient;
+  cache: Cache;
 }
 
 declare module "@remix-run/node" {

@@ -1,4 +1,10 @@
-import type { ActionFunctionArgs, LoaderFunctionArgs, MetaDescriptor, MetaFunction } from '@remix-run/node';
+import type {
+    ActionFunctionArgs,
+    HeadersFunction,
+    LoaderFunctionArgs,
+    MetaDescriptor,
+    MetaFunction,
+} from '@remix-run/node';
 import { ActionType, TIME_TO_INCREASE_VIEWS } from '~/features/post/config';
 import { Await, useFetcher, useLoaderData } from '@remix-run/react';
 import {
@@ -11,12 +17,7 @@ import {
 import { PostActions, PostActionsFallback } from '~/features/post/components/PostActions';
 import { Suspense, useEffect } from 'react';
 import { defer, json } from '@remix-run/node';
-import {
-    getPostStats,
-    getUserActions,
-    incrementViewsCount,
-    updateUserRating,
-} from '~/features/post/services/postStats.server';
+import { incrementViewsCount, updateUserRating } from '~/features/post/services/postStats.server';
 import { isAdmin, isDevelopment, isError, isErrorResponse } from '~/services/util.server';
 
 import { Breadcrumbs } from '~/features/post/components/Breadcrumbs';
@@ -27,37 +28,57 @@ import { PostHeader } from '~/features/post/components/PostHeader';
 import { PostSection } from '~/features/post/components/PostSection';
 import { SectionRenderer } from '~/features/post/components/SectionRenderer';
 import type { ShouldRevalidateFunction } from '@remix-run/react';
+import { TimeInSeconds } from '~/config/util';
 import type { UpdateFunctionArgs } from '~/features/post/services/postStats.server';
+import { cacheConfig } from '~/features/post/services/cache.server';
+import { cacheControl } from '~/services/cacheControl.server';
 import { component } from '~/utils/component';
-import { getPostBySlug } from '~/features/post/services/fetchPost.server';
 import { honeypot } from '~/services/honeypot.server';
+import { isExpectedObject } from '~/utils/misc';
 import { isUserRating } from '~/features/post/utils';
 import { isbot } from 'isbot';
 import { namedAction } from 'remix-utils/named-action';
+import { useCachedData } from '~/hooks/useCachedData';
 import { useMirrorRef } from '~/hooks/useMirrorRef';
 import { useSectionsObserver } from '~/features/post/hooks/useSectionsObserver';
 
-export const loader = async ({ request, context: { payload, user }, params }: LoaderFunctionArgs) => {
+export const loader = async ({ request, context: { payload, cache, redis, user }, params }: LoaderFunctionArgs) => {
     if (!('id' in params) || !params.id) {
         throw new InvalidParamsResponse();
     }
 
     try {
-        const post = await getPostBySlug(payload, params.id);
+        const postCache = cache.configure(cacheConfig);
+        const post = await postCache.get('post', { payload, slug: params.id });
 
         if (!post) {
             throw new NotFoundResponse();
         }
 
+        const { id: postId, title } = post;
+
         if (post._status === 'draft' && !isAdmin(user)) {
-            throw new NotAllowedResponse(post.title);
+            throw new NotAllowedResponse(title);
         }
 
-        return defer({
-            post,
-            postStats: getPostStats(payload, post.id),
-            userActions: getUserActions(request, post.id),
-        });
+        return defer(
+            {
+                post,
+                postStats: postCache.get('postStats', { payload, postId }),
+                userActions: postCache.get('userActions', { request, redis, postId }),
+            },
+            {
+                headers: {
+                    'Cache-Control': cacheControl({
+                        public: true,
+                        "max-age": 5 * TimeInSeconds.MINUTE,
+                        "s-maxage": TimeInSeconds.HOUR,
+                        "stale-while-revalidate": TimeInSeconds.DAY,
+                        "stale-if-error": TimeInSeconds.DAY
+                    })
+                },
+            }
+        );
     } catch (error) {
         if (isErrorResponse(error)) {
             throw error;
@@ -71,9 +92,53 @@ export const loader = async ({ request, context: { payload, user }, params }: Lo
     }
 };
 
-export const shouldRevalidate: ShouldRevalidateFunction = () => {
-    // for now ensure the post is fetched only once (re-fetched only on refresh)
-    return false;
+export const action = async ({ request, context: { payload, redis } }: ActionFunctionArgs) => {
+    const formData = await request.formData();
+    const postId = formData.get('postId');
+
+    if (typeof postId !== 'string') {
+        return json({ ok: false });
+    }
+
+    const args: UpdateFunctionArgs = {
+        request,
+        payload,
+        redis,
+        postId,
+    };
+
+    return namedAction(formData, {
+        [ActionType.INCREMENT_VIEWS_COUNT]: async () => {
+            const response = await incrementViewsCount(args);
+
+            return json(response);
+        },
+        [ActionType.UPDATE_USER_RATING]: async () => {
+            try {
+                honeypot.check(formData);
+
+                const rating = formData.get('rating') || null;
+
+                if (!isUserRating(rating)) {
+                    return json({ ok: false });
+                }
+
+                const response = await updateUserRating(args, rating);
+
+                return json(response);
+            } catch (error) {
+                return json({ ok: false });
+            }
+        }
+    });
+};
+
+export const headers: HeadersFunction = ({ loaderHeaders }) => ({
+    'Cache-Control': loaderHeaders.get('Cache-Control')!,
+});
+
+export const shouldRevalidate: ShouldRevalidateFunction = ({ actionResult }) => {
+    return isExpectedObject(actionResult, { ok: true });
 };
 
 export const meta: MetaFunction<typeof loader> = ({ data, matches }) => {
@@ -121,69 +186,30 @@ export const meta: MetaFunction<typeof loader> = ({ data, matches }) => {
     return meta;
 };
 
-export const action = async ({ request, context: { payload } }: ActionFunctionArgs) => {
-    const formData = await request.formData();
-    const postId = formData.get('postId');
-
-    if (typeof postId !== 'string') {
-        return json({ ok: false });
-    }
-
-    const args: UpdateFunctionArgs = {
-        request,
-        payload,
-        postId,
-    };
-
-    return namedAction(formData, {
-        [ActionType.INCREMENT_VIEWS_COUNT]: async () => {
-            const response = await incrementViewsCount(args);
-
-            return json(response);
-        },
-        [ActionType.UPDATE_USER_RATING]: async () => {
-            try {
-                honeypot.check(formData);
-
-                const rating = formData.get('rating') || null;
-
-                if (!isUserRating(rating)) {
-                    return json({ ok: false });
-                }
-
-                const response = await updateUserRating(args, rating);
-
-                return json(response);
-            } catch (error) {
-                return json({ ok: false });
-            }
-        },
-    });
-};
-
 export default component('PostPage', function () {
     const {
-        post: {
-            id,
-            publishedAt,
-            updatedAt,
-            pageSlug,
-            title,
-            advancedTitling: { breadcrumbTitle },
-            tags,
-            sections,
-            layout,
-        },
+        post,
         postStats,
         userActions,
     } = useLoaderData<typeof loader>();
+    const {
+        id,
+        publishedAt,
+        updatedAt,
+        pageSlug,
+        title,
+        advancedTitling: { breadcrumbTitle },
+        tags,
+        sections,
+        layout,
+    } = useCachedData(post)
     const fetcherRef = useMirrorRef(useFetcher());
     const userActionsRef = useMirrorRef(userActions);
 
     useEffect(() => {
         const timeoutId = setTimeout(async () => {
             if (isbot(navigator.userAgent)) {
-                return
+                return;
             }
 
             const { isViewed } = await userActionsRef.current;

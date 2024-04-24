@@ -9,3 +9,5 @@ export type Override<
 export type Must<T> = {
     [P in keyof T]-?: NonNullable<T[P]>
 }
+
+export type Primitive = string | number | boolean | null | undefined;

@@ -1,8 +1,10 @@
-import { afterChangeHook, afterDeleteHook, beforeChangeHook } from '../posts/hooks'
-
 import type { CollectionConfig } from 'payload/types';
 import blocksField from '../posts/blocks';
+import { cacheHooks } from '../posts/hooks/cache';
 import fields from '../posts/fields';
+import { mergeHooks } from '../utils/mergeHooks';
+import { postStatsHooks } from '../posts/hooks/postStats';
+import { publishedDateFieldHooks } from '../posts/hooks/publishedDateField';
 
 const Posts: CollectionConfig = {
     slug: 'posts',
@@ -11,11 +13,7 @@ const Posts: CollectionConfig = {
         useAsTitle: 'title',
     },
     fields: [...fields, blocksField],
-    hooks: {
-        beforeChange: [beforeChangeHook],
-        afterChange: [afterChangeHook],
-        afterDelete: [afterDeleteHook]
-    },
+    hooks: mergeHooks(publishedDateFieldHooks, postStatsHooks, cacheHooks),
     versions: {
         drafts: {
             autosave: false

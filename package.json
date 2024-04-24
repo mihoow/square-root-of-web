@@ -17,6 +17,7 @@
     "postinstall": "patch-package --use-yarn"
   },
   "dependencies": {
+    "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
     "@payloadcms/bundler-vite": "^0.1.6",
     "@payloadcms/db-mongodb": "^1.4.3",
     "@payloadcms/richtext-lexical": "^0.7.0",
