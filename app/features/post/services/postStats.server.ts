@@ -24,7 +24,7 @@ async function updateCounter(
     const statsCollection = payload.db.collections['post-statistics'] as CollectionModel;
 
     const { modifiedCount } = await statsCollection.updateOne(
-        { _id: postId },
+        { postId },
         {
             $inc: Object.entries(update).reduce((acc, [propertyName, value]) => {
                 return {
