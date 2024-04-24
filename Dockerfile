@@ -29,11 +29,11 @@ RUN yarn install --frozen-lockfile --production=false
 # patch some node-modules packages
 RUN yarn postinstall
 
-# generate payload types
-RUN yarn generate:types
-
 # Copy application code
 COPY --link . .
+
+# Generate payload types
+RUN yarn generate:types
 
 # Build application
 RUN yarn run build
