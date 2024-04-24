@@ -4,6 +4,7 @@ import type { CollectionModel } from '@payloadcms/db-mongodb/dist/types';
 import type { Payload } from 'payload';
 import type { RedisClient } from '~/services/redis.server';
 import { TimeInMs } from '../../../config/misc';
+import { getClientIPAddress } from 'remix-utils/get-client-ip-address'
 import { isbot } from 'isbot';
 
 export type UpdateFunctionArgs = {
