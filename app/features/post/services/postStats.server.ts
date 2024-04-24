@@ -4,7 +4,7 @@ import type { CollectionModel } from '@payloadcms/db-mongodb/dist/types';
 import type { Payload } from 'payload';
 import type { RedisClient } from '~/services/redis.server';
 import { TimeInMs } from '../../../config/misc';
-import { getClientIPAddress } from 'remix-utils/get-client-ip-address'
+import { getClientIPAddress } from 'remix-utils/get-client-ip-address';
 import { isbot } from 'isbot';
 
 export type UpdateFunctionArgs = {
@@ -40,7 +40,7 @@ async function updateCounter(
     }
 }
 
-async function getClientIp(request: Request) {
+function getClientIp(request: Request) {
     const clientIp = getClientIPAddress(request);
 
     if (!clientIp) {
@@ -51,43 +51,34 @@ async function getClientIp(request: Request) {
 }
 
 async function getUserActionsHandler(request: Request, redis: RedisClient, postId: string) {
-    try {
-        const clientIp = await getClientIp(request);
+    const clientIp = getClientIp(request);
+    const key = `devices:${clientIp}:posts:${postId}`;
 
-        console.log(`Client IP: ${clientIp}`);
-        const key = `devices:${clientIp}:posts:${postId}`;
+    return {
+        async get(): Promise<UserPostActions> {
+            const { isViewed, rating = null } = await redis.hGetAll(key);
 
-        return {
-            async get(): Promise<UserPostActions> {
-                const { isViewed, rating = null } = await redis.hGetAll(key);
-
-                return {
-                    isViewed: Number(isViewed) === 1,
-                    rating: rating as UserRating,
-                };
-            },
-            async set<P extends keyof UserPostActions>(prop: P, value: UserPostActions[P]) {
-                const parsedValue: string | number | null = (() => {
-                    if (typeof value === 'boolean') {
-                        return value ? 1 : -1;
-                    }
-
-                    return value;
-                })();
-
-                if (!parsedValue) {
-                    return redis.hDel(key, prop);
+            return {
+                isViewed: Number(isViewed) === 1,
+                rating: rating as UserRating,
+            };
+        },
+        async set<P extends keyof UserPostActions>(prop: P, value: UserPostActions[P]) {
+            const parsedValue: string | number | null = (() => {
+                if (typeof value === 'boolean') {
+                    return value ? 1 : -1;
                 }
 
-                return Promise.all([
-                    redis.hSet(key, { [prop]: parsedValue }),
-                    redis.pExpire(key, TimeInMs.MONTH, 'NX'),
-                ]);
-            },
-        };
-    } catch (error) {
-        console.log('>>IP error', error)
-    }
+                return value;
+            })();
+
+            if (!parsedValue) {
+                return redis.hDel(key, prop);
+            }
+
+            return Promise.all([redis.hSet(key, { [prop]: parsedValue }), redis.pExpire(key, TimeInMs.MONTH, 'NX')]);
+        },
+    };
 }
 
 async function handleUpdate(
@@ -207,7 +198,7 @@ export async function getUserActions({
 
         return get();
     } catch (error) {
-        console.log('getUserActions', error);
+        console.log(error);
 
         return {
             isViewed: true,

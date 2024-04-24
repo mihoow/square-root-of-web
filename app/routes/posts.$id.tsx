@@ -92,9 +92,10 @@ export const loader = async ({ request, context: { payload, cache, redis, user }
     }
 };
 
-export const action = async ({ request, context: { payload, redis } }: ActionFunctionArgs) => {
+export const action = async ({ request, context: { payload, redis, cache } }: ActionFunctionArgs) => {
     const formData = await request.formData();
     const postId = formData.get('postId');
+    const postCache = cache.configure(cacheConfig)
 
     if (typeof postId !== 'string') {
         return json({ ok: false });
@@ -111,13 +112,17 @@ export const action = async ({ request, context: { payload, redis } }: ActionFun
         [ActionType.INCREMENT_VIEWS_COUNT]: async () => {
             const response = await incrementViewsCount(args);
 
+            if (response.ok) {
+                // Normally payload API invalidates cache automatically,
+                // here we use mongoose API instead so it's needed to do it manually
+                await postCache.invalidate('postStats', { payload, postId })
+            }
+
             return json(response);
         },
         [ActionType.UPDATE_USER_RATING]: async () => {
             try {
                 honeypot.check(formData);
-
-                console.log('Honeypot passed')
 
                 const rating = formData.get('rating') || null;
 
@@ -125,9 +130,11 @@ export const action = async ({ request, context: { payload, redis } }: ActionFun
                     return json({ ok: false });
                 }
 
-                console.log('Rating: ', rating)
-
                 const response = await updateUserRating(args, rating);
+
+                if (response.ok) {
+                    await postCache.invalidate('postStats', { payload, postId })
+                }
 
                 return json(response);
             } catch (error) {
