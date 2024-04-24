@@ -1,3 +1,4 @@
+import { APP_NAME, TimeInSeconds } from '~/config/misc';
 import type {
     ActionFunctionArgs,
     HeadersFunction,
@@ -28,7 +29,6 @@ import { PostHeader } from '~/features/post/components/PostHeader';
 import { PostSection } from '~/features/post/components/PostSection';
 import { SectionRenderer } from '~/features/post/components/SectionRenderer';
 import type { ShouldRevalidateFunction } from '@remix-run/react';
-import { TimeInSeconds } from '~/config/util';
 import type { UpdateFunctionArgs } from '~/features/post/services/postStats.server';
 import { cacheConfig } from '~/features/post/services/cache.server';
 import { cacheControl } from '~/services/cacheControl.server';
@@ -142,33 +142,24 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({ actionResult }) => 
 };
 
 export const meta: MetaFunction<typeof loader> = ({ data, matches }) => {
-    const criticalMeta: MetaDescriptor[] = [
-        { charSet: 'utf-8' },
-        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-    ];
-
     if (!data) {
-        return criticalMeta;
+        return [];
     }
 
     const {
         post: {
-            createdAt,
+            publishedAt,
             advancedTitling: { metaTitle },
             meta: { description, keywords, author, allowSearchEngineIndexing },
             updatedAt,
         },
     } = data;
 
-    const rootTitleDescriptor = matches.find(({ id }) => id === 'root')?.meta.find((item) => 'title' in item);
-    const rootTitle = rootTitleDescriptor && 'title' in rootTitleDescriptor ? rootTitleDescriptor.title : '';
-
     const meta: MetaDescriptor[] = [
-        { title: `${metaTitle}${rootTitle ? ` | ${rootTitle}` : ''}` },
+        { title: `${metaTitle} | ${APP_NAME}` },
         { name: 'robots', content: allowSearchEngineIndexing ? 'follow, index' : 'nofollow, noindex' },
-        { name: 'dcterms.created', content: createdAt },
+        { name: 'dcterms.created', content: publishedAt },
         { name: 'dcterms.modified', content: updatedAt },
-        ...criticalMeta,
     ];
 
     if (description) {

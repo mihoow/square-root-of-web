@@ -10,7 +10,7 @@ import type {
 } from '../types/cache.server';
 import { isObject, isPrimitive } from '../utils/misc';
 
-import { TimeInMs } from '../config/util';
+import { TimeInMs } from '../config/misc';
 import crypto from 'node:crypto';
 import type { getRedisClient } from './redis.server';
 

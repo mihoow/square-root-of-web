@@ -1,3 +1,5 @@
+export const APP_NAME = 'Square Root Of Web';
+
 export enum TimeInMs {
     SECOND = 1000,
     MINUTE = 60000,

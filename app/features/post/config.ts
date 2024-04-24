@@ -1,5 +1,5 @@
 import type { PostTag } from "./type"
-import { TimeInMs } from "~/config/util";
+import { TimeInMs } from "~/config/misc";
 
 type TagConfig = {
     label: string;

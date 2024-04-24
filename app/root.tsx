@@ -4,9 +4,11 @@ import './styles/index.css';
 import { Links, Meta, Outlet, Scripts, ScrollRestoration, json, useLoaderData } from '@remix-run/react';
 import type { LinksFunction, LoaderFunctionArgs, MetaFunction } from '@remix-run/node';
 
+import { APP_NAME } from './config/misc';
 import { Header } from './components/Header';
 import { HoneypotProvider } from 'remix-utils/honeypot/react';
 import { MediaProvider } from './features/media/contexts/Media.provider';
+import { Theme } from './features/theme/config';
 import { ThemeProvider } from './features/theme/contexts/Theme.provider';
 import { getThemeSession } from './features/theme/service.server';
 import { honeypot } from './services/honeypot.server';
@@ -21,20 +23,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     });
 };
 
-export const meta: MetaFunction<typeof loader> = ({ data }) => {
-    const defaultMeta = [
-        { title: 'Square Root Of Web' },
+export const meta: MetaFunction<typeof loader> = () => {
+    return [
+        { title: APP_NAME },
         { name: 'description', content: 'The learning platform about the web development and more' },
         { name: 'keywords', content: ['web', 'web development', 'JavaScript', 'JS', 'react', 'course'].join(', ') },
-        { charSet: 'utf-8' },
-        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
     ];
-
-    if (!data?.theme) {
-        return defaultMeta;
-    }
-
-    return [...defaultMeta, { name: 'color-scheme', content: data.theme === 'light' ? 'light dark' : 'dark light' }];
 };
 
 export const links: LinksFunction = () => {
@@ -58,6 +52,9 @@ function App() {
             className={theme || ''}
         >
             <head>
+                <meta charSet='utf-8' />
+                <meta name='viewport' content='width=device-width, initial-scale=1' />
+                { theme && (<meta name='color-scheme' content={ theme === Theme.LIGHT  ? 'light dark' : 'dark light' } />) }
                 <Meta />
                 <Links />
             </head>
