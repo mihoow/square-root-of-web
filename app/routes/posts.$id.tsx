@@ -117,11 +117,15 @@ export const action = async ({ request, context: { payload, redis } }: ActionFun
             try {
                 honeypot.check(formData);
 
+                console.log('Honeypot passed')
+
                 const rating = formData.get('rating') || null;
 
                 if (!isUserRating(rating)) {
                     return json({ ok: false });
                 }
+
+                console.log('Rating: ', rating)
 
                 const response = await updateUserRating(args, rating);
 
@@ -219,6 +223,12 @@ export default component('PostPage', function () {
             clearTimeout(timeoutId);
         };
     }, [userActionsRef, fetcherRef, id]);
+
+    useEffect(() => {
+        userActions
+            .then((actions) => console.log('>>actions ', actions))
+            .catch((error) => console.error('>>actions ', error))
+    }, [])
 
     const connectToSection = useSectionsObserver(layout);
 
