@@ -4,6 +4,7 @@ import type { CollectionModel } from '@payloadcms/db-mongodb/dist/types';
 import type { Payload } from 'payload';
 import type { RedisClient } from '~/services/redis.server';
 import { TimeInMs } from '../../../config/misc';
+import { getClientIPAddress } from 'remix-utils/get-client-ip-address';
 import { isbot } from 'isbot';
 
 export type UpdateFunctionArgs = {
@@ -39,8 +40,7 @@ async function updateCounter(
     }
 }
 
-async function getClientIp(request: Request) {
-    const { getClientIPAddress } = await import('remix-utils/get-client-ip-address')
+function getClientIp(request: Request) {
     const clientIp = getClientIPAddress(request);
 
     if (!clientIp) {
@@ -51,7 +51,7 @@ async function getClientIp(request: Request) {
 }
 
 async function getUserActionsHandler(request: Request, redis: RedisClient, postId: string) {
-    const clientIp = await getClientIp(request);
+    const clientIp = getClientIp(request);
     const key = `devices:${clientIp}:posts:${postId}`;
 
     return {
