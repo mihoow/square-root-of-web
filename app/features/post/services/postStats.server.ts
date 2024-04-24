@@ -40,7 +40,6 @@ async function updateCounter(
 }
 
 async function getClientIp(request: Request) {
-    const { getClientIPAddress } = await import('remix-utils/get-client-ip-address')
     const clientIp = getClientIPAddress(request);
 
     if (!clientIp) {
@@ -51,35 +50,43 @@ async function getClientIp(request: Request) {
 }
 
 async function getUserActionsHandler(request: Request, redis: RedisClient, postId: string) {
-    const clientIp = await getClientIp(request);
-    console.log(`Client IP: ${clientIp}`)
-    const key = `devices:${clientIp}:posts:${postId}`;
+    try {
+        const clientIp = await getClientIp(request);
 
-    return {
-        async get(): Promise<UserPostActions> {
-            const { isViewed, rating = null } = await redis.hGetAll(key);
+        console.log(`Client IP: ${clientIp}`);
+        const key = `devices:${clientIp}:posts:${postId}`;
 
-            return {
-                isViewed: Number(isViewed) === 1,
-                rating: rating as UserRating,
-            };
-        },
-        async set<P extends keyof UserPostActions>(prop: P, value: UserPostActions[P]) {
-            const parsedValue: string | number | null = (() => {
-                if (typeof value === 'boolean') {
-                    return value ? 1 : -1;
+        return {
+            async get(): Promise<UserPostActions> {
+                const { isViewed, rating = null } = await redis.hGetAll(key);
+
+                return {
+                    isViewed: Number(isViewed) === 1,
+                    rating: rating as UserRating,
+                };
+            },
+            async set<P extends keyof UserPostActions>(prop: P, value: UserPostActions[P]) {
+                const parsedValue: string | number | null = (() => {
+                    if (typeof value === 'boolean') {
+                        return value ? 1 : -1;
+                    }
+
+                    return value;
+                })();
+
+                if (!parsedValue) {
+                    return redis.hDel(key, prop);
                 }
 
-                return value;
-            })();
-
-            if (!parsedValue) {
-                return redis.hDel(key, prop);
-            }
-
-            return Promise.all([redis.hSet(key, { [prop]: parsedValue }), redis.pExpire(key, TimeInMs.MONTH, 'NX')]);
-        },
-    };
+                return Promise.all([
+                    redis.hSet(key, { [prop]: parsedValue }),
+                    redis.pExpire(key, TimeInMs.MONTH, 'NX'),
+                ]);
+            },
+        };
+    } catch (error) {
+        console.log('>>IP error', error)
+    }
 }
 
 async function handleUpdate(
@@ -199,7 +206,7 @@ export async function getUserActions({
 
         return get();
     } catch (error) {
-        console.log(error);
+        console.log('getUserActions', error);
 
         return {
             isViewed: true,
