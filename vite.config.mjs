@@ -18,7 +18,17 @@ export default defineConfig({
     ],
     logLevel: 'warn',
     ssr: {
-        noExternal: ['remix-utils', 'is-ip'],
+        noExternal: [
+            'remix-utils',
+            "is-ip",
+            "ip-regex",
+            "super-regex",
+            "clone-regexp",
+            "function-timeout",
+            "time-span",
+            "convert-hrtime",
+            "is-regexp"
+        ],
     },
     optimizeDeps: {
         esbuildOptions: {
