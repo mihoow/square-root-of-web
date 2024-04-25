@@ -12,52 +12,69 @@ type SectionRendererProps = {
     connectToSection: (id: string, node: HTMLElement | null) => void;
 };
 
-export const SectionRenderer = component<SectionRendererProps>('SectionRenderer', function ({ className, data, connectToSection }) {
-    if (isTextBlock(data)) {
-        const { content } = data;
+export const SectionRenderer = component<SectionRendererProps>(
+    'SectionRenderer',
+    function ({ className, data, connectToSection }) {
+        if (isTextBlock(data)) {
+            const { content } = data;
 
-        return (
-            <HTMLParser
-                className={this.mcn(className)}
-                content={content}
-            />
-        );
+            return (
+                <HTMLParser
+                    className={this.mcn(className)}
+                    content={content}
+                />
+            );
+        }
+
+        if (isYoutubeVideo(data)) {
+            const { videoId, thumbnailUrl } = data;
+
+            return (
+                <YoutubePlayer
+                    videoId={videoId}
+                    thumbnailUrl={thumbnailUrl}
+                />
+            );
+        }
+
+        if (isQA(data)) {
+            const { sectionId, items } = data;
+
+            return (
+                <QuestionsAndAnswers
+                    id={sectionId}
+                    connectToSection={connectToSection}
+                    items={items}
+                />
+            );
+        }
+
+        if (isCodePen(data)) {
+            const {
+                codePenUrl,
+                penId,
+                penTitle,
+                iframeLazyLoading,
+                clickToLoad,
+                editable,
+                defaultTab,
+                showResultInitially,
+            } = data;
+
+            return (
+                <CodePen
+                    codePenUrl={codePenUrl}
+                    penId={penId}
+                    title={penTitle}
+                    iframeLoading={iframeLazyLoading ? 'lazy' : 'eager'}
+                    isClickToLoad={clickToLoad}
+                    isEditable={editable}
+                    defaultTab={defaultTab}
+                    isResultVisibleByDefault={showResultInitially}
+                />
+            );
+        }
+
+        return null;
     }
-
-    if (isYoutubeVideo(data)) {
-        const { videoId } = data;
-
-        return <YoutubePlayer videoId={videoId} />;
-    }
-
-    if (isQA(data)) {
-        const { sectionId, items } = data;
-
-        return (
-            <QuestionsAndAnswers
-                id={sectionId}
-                connectToSection={connectToSection}
-                items={items}
-            />
-        );
-    }
-
-    if (isCodePen(data)) {
-        const { codePenUrl, penId, penTitle, iframeLazyLoading, clickToLoad, editable, defaultTab, showResultInitially } = data;
-
-        return (
-            <CodePen
-                codePenUrl={codePenUrl}
-                penId={penId}
-                title={penTitle}
-                iframeLoading={iframeLazyLoading ? 'lazy' : 'eager'}
-                isClickToLoad={clickToLoad}
-                isEditable={editable}
-                defaultTab={defaultTab}
-                isResultVisibleByDefault={showResultInitially}
-            />
-        );
-    }
-
-    return null;
-});
+);

@@ -221,7 +221,7 @@ export default component('PostPage', function () {
             }
 
             fetcherRef.current.submit(
-                { intent: 'incrementViewsCount', postId: id },
+                { intent: ActionType.INCREMENT_VIEWS_COUNT, postId: id },
                 { method: 'PATCH', preventScrollReset: true }
             );
         }, TIME_TO_INCREASE_VIEWS);
@@ -230,12 +230,6 @@ export default component('PostPage', function () {
             clearTimeout(timeoutId);
         };
     }, [userActionsRef, fetcherRef, id]);
-
-    useEffect(() => {
-        userActions
-            .then((actions) => console.log('>>actions ', actions))
-            .catch((error) => console.error('>>actions ', error))
-    }, [])
 
     const connectToSection = useSectionsObserver(layout);
 

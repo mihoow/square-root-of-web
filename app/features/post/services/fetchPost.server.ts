@@ -32,7 +32,7 @@ function normalizeSections(sections: RawPost['sections']): SectionItem[] {
                 ...acc,
                 {
                     ...section,
-                    thumbnailUrl: `https://youtube.com/vi/${videoId}/0.jpg`,
+                    thumbnailUrl: `${process.env.ORIGIN_URL}/media/thumbnails/${videoId}-20x12.jpg`,
                 } satisfies YoutubeVideoData,
             ];
         }

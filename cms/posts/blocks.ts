@@ -1,6 +1,7 @@
 import type { Block, Field } from 'payload/types';
 
 import { addRichTextFields, validateUrlFriendlyText } from './utils';
+import { afterFieldChange } from './hooks/thumbnailUploads';
 
 function createSection(slug: string, { fields, ...otherProperties }: Omit<Block, 'slug'>): Block {
     return {
@@ -36,6 +37,9 @@ const YoutubeVideo = createSection('YoutubeVideo', {
             name: 'videoId',
             type: 'text',
             required: true,
+            hooks: {
+                afterChange: [afterFieldChange]
+            }
         },
     ],
 });
