@@ -57,10 +57,8 @@ const CodePen = createSection('CodePen', {
             required: true,
         },
         {
-            name: 'iframeLazyLoading',
-            type: 'checkbox',
-            required: true,
-            defaultValue: true
+            name: 'height',
+            type: 'number'
         },
         {
             name: 'clickToLoad',
@@ -92,7 +90,8 @@ const CodePen = createSection('CodePen', {
                 { value: 'js', label: 'JavaScript' },
             ],
             defaultValue: 'js'
-        }
+        },
+        ...addRichTextFields('description')
     ]
 })
 

@@ -35,9 +35,16 @@ export const OnThisPage = component<{ layout: PageLayoutItem[] }>('OnThisPage', 
     const currentHash = searchParams.get('hash') || '';
 
     return (
-        <aside className={this.mcn(className, 'px-6 py-4 border-2 rounded-md')}>
-            <h5 className={this.cn('mb-4 font-bold text-lg')}>On this page:</h5>
-            <ol className={this.cn('flex flex-col gap-1')}>
+        <aside className={this.mcn(className, 'border-2 rounded-md overflow-auto')}>
+            <h5
+                className={this.cn(
+                    'sticky top-0 mb-4 pl-6 pr-8 py-4',
+                    'font-bold text-lg bg-white dark:bg-darkBackground border-b-2'
+                )}
+            >
+                On this page:
+            </h5>
+            <ol className={this.cn('pl-6 pr-8 pb-4 flex flex-col gap-1')}>
                 {layout.map(({ id, title, subsections }) => {
                     return (
                         <Fragment key={id}>

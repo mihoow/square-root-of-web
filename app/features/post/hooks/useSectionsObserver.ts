@@ -107,7 +107,8 @@ export function useSectionsObserver(layout: PageLayoutItem[]) {
 
             if (currentHashRef.current !== mostVisibleSection.id) {
                 setSearchParams(
-                    (params) => {
+                    (naiveParams) => {
+                        const params = window.qaSearchParams ? new URLSearchParams(window.qaSearchParams) : naiveParams;
                         params.set('hash', mostVisibleSection.id);
 
                         return params;

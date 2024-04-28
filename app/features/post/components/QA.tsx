@@ -1,10 +1,11 @@
-import { Suspense, useCallback } from 'react';
+import { Suspense, useCallback, useEffect } from 'react';
 
 import { Accordion } from 'flowbite-react/components/Accordion';
 import CodeBlock from './CodeBlock';
 import { HTMLParser } from '~/components/HTMLParser';
 import type { QAItem } from '../type';
 import { component } from '~/utils/component';
+import { subscribeToEvent } from '~/utils/customEvent';
 import { useSearchParams } from '@remix-run/react';
 
 type QAProps = {
@@ -51,6 +52,18 @@ export const QuestionsAndAnswers = component<QAProps>(
 
         const openPanelIndex = Number(searchParams.get(id) || -1);
 
+        useEffect(() => {
+            return subscribeToEvent('post:navigate', ({ detail: { sectionId } }) => {
+                const elem = document.getElementById(sectionId)
+
+                if (!elem) return
+
+                if (elem.parentElement?.parentElement?.tagName === 'BUTTON') {
+                    elem.parentElement.parentElement.focus()
+                }
+            })
+        }, [])
+
         const handleChange = useCallback(
             (panelIndex: number) => {
                 if (panelIndex === openPanelIndex) {
@@ -64,6 +77,8 @@ export const QuestionsAndAnswers = component<QAProps>(
                         } else {
                             params.set(id, String(panelIndex));
                         }
+
+                        window.qaSearchParams = params.toString()
 
                         return params;
                     },
@@ -84,7 +99,7 @@ export const QuestionsAndAnswers = component<QAProps>(
                     <Accordion.Panel key={id}>
                         <Accordion.Title as='h3'>
                             <span
-                                id={id || ''}
+                                id={id}
                                 ref={(node) => connectToSection(id || '', node)}
                             >
                                 <HTMLParser content={question} />

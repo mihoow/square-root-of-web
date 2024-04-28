@@ -234,7 +234,7 @@ export default component('PostPage', function () {
     const connectToSection = useSectionsObserver(layout);
 
     return (
-        <main className={this.mcn('my-10 contain prose dark:prose-invert')}>
+        <main className={this.mcn('my-5 contain prose dark:prose-invert', 'md:my-10')}>
             <div className={this.cn('max-w-[768px] mx-auto')}>
                 <Breadcrumbs
                     className={this.cn('not-prose mb-7')}
@@ -281,7 +281,7 @@ export default component('PostPage', function () {
                 <Media match='gte:xl'>
                     <OnThisPage
                         className={this.cn(
-                            'fixed top-[80px] mt-10 left-[calc((100vw-752px)/2+752px)] not-prose',
+                            'fixed max-h-[calc(100vh-80px-5rem)] top-[80px] my-10 left-[calc((100vw-752px)/2+752px)] not-prose',
                             'xl:mx-6',
                             '2xl:ml-16'
                         )}

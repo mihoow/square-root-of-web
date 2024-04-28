@@ -12,6 +12,7 @@ type Identifiers = {
 
 type CodePenProps = Identifiers & {
     title: string;
+    height?: number | null;
     iframeLoading?: IframeHTMLAttributes<HTMLIFrameElement>['loading'];
     isClickToLoad?: boolean;
     isEditable?: boolean;
@@ -41,6 +42,7 @@ export const CodePen = component<CodePenProps>(
         className,
         codePenUrl,
         penId,
+        height,
         title,
         iframeLoading = 'lazy',
         isClickToLoad = true,
@@ -88,8 +90,8 @@ export const CodePen = component<CodePenProps>(
                 src={fullUrl}
                 loading={iframeLoading}
                 allowFullScreen
-                height={300}
-                className={this.mcn(className, 'w-full')}
+                height={height ? height : undefined}
+                className={this.mcn(className, 'w-full', !height && 'h-[calc(100vh-5.5rem)] md:h-[calc(100vh-7rem)]')}
                 onError={() => setIsLoadingError(true)}
             />
         );
